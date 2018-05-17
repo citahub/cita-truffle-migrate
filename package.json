@@ -1,22 +1,29 @@
 {
-  "name": "cita-truffle-migrate",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/CITA-Toys/cita-truffle-migrate.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/CITA-Toys/cita-truffle-migrate/issues"
-  },
-  "homepage": "https://github.com/CITA-Toys/cita-truffle-migrate#readme",
-  "dependencies": {
-    "cita-web3": "^0.5.8"
-  }
+    "name": "@cita/truffle-migrate",
+    "version": "0.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/CITA-Toys/cita-truffle-migrate.git"
+    },
+    "author": "Yao <yg_yao@live.com>",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/CITA-Toys/cita-truffle-migrate/issues"
+    },
+    "homepage": "https://github.com/CITA-Toys/cita-truffle-migrate#readme",
+    "dependencies": {
+        "cita-web3": "^0.5.8"
+    },
+    "devDependencies": {
+        "@types/node": "^10.1.0",
+        "typescript": "^2.8.3"
+    },
+    "bin": {
+        "cita-migrate": "./dist/index.js"
+    }
 }
