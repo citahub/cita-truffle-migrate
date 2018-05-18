@@ -1,6 +1,5 @@
 import log from './log'
 import utils from './utils'
-import deployer from './deployer'
 import * as Web3 from 'cita-web3'
 import { initBlockNumber } from './contract_utils'
 

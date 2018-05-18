@@ -2,32 +2,39 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import deployer from './deployer'
+import deploy from './deploy'
 import * as Web3 from 'cita-web3'
 import { getRandomInt } from './contract_utils'
-// import log from './log'
+import log from './log'
 
-const rootPath = process.cwd()
+const __root = process.cwd()
+
+const rootPathOf = (filePath) => {
+  const rootPath = __root
+  const p = path.resolve(rootPath, filePath)
+  return p
+}
+
+const PathTable = {
+  contracts: rootPathOf('./build/contracts'), 
+  migrations: rootPathOf('./migrations'),
+  truffleConfig: rootPathOf('./truffle.js'),
+  citaConfig: rootPathOf('./truffle-cita.js'),
+}
 
 const dirFilesRequire = (dir: string) => {
-  const p = path.resolve(rootPath, dir)
+  const p = rootPathOf(dir)
   const files = fs.readdirSync(p)
-  const a = []
+  const list = []
   files.forEach((file, i) => {
     const filePath = path.resolve(p, file)
-    const content = require(filePath)
-    a.push(content)
+    const f = require(filePath)
+    list.push(f)
   })
-  return a
+  return list
 }
 
-const contractFileNames = () => {
-  const dir = './build/contracts'
-  const cons = dirFilesRequire(dir)
-  return cons
-}
-
-const parsedCommandLine = () => {
+const parsedCommandArgs = () => {
   const { argv } = process
   let args = []
   if (argv.length >= 3) {
@@ -36,7 +43,7 @@ const parsedCommandLine = () => {
   return args
 }
 
-const parsedNetorkWeb3 = (network: { host: string; port: number; provider: any }) => {
+const newProviderWeb3 = (network: { host: string; port: number; provider: any }) => {
   const { host, port } = network
   let { provider } = network
   if (!provider) {
@@ -47,8 +54,8 @@ const parsedNetorkWeb3 = (network: { host: string; port: number; provider: any }
   return web3
 }
 
-const parsedCommandWeb3 = (args: string[]) => {
-  const p = path.resolve(rootPath, './truffle.js')
+const parsedWeb3Network = (args: string[]) => {
+  const p = PathTable.citaConfig
   const config = require(p)
   const { networks } = config
   let network
@@ -57,44 +64,58 @@ const parsedCommandWeb3 = (args: string[]) => {
   } else {
     network = networks.development
   }
-  const web3 = parsedNetorkWeb3(network)
-  return web3
+  const web3 = newProviderWeb3(network)
+  return { web3, network }
 }
 
-const deploy = async (web3) => {
-  const cons = contractFileNames()
-  const insList = []
-  const deployAll = async () => {
-    const len = cons.length
+const newDeployer = function(web3, userParams) {
+  const deployStart = async (contracsName) => {
+    const conpath = path.resolve(PathTable.contracts, contracsName)
+    const con = require(conpath)
+    const { bytecode, abi } = con
+    const info = Object.assign({ bytecode, abi }, userParams)
+    const ins = await deploy(info, web3)
+    console.log('address:', ins.address)
+    return ins
+  }
+  const deployer = {
+    deploy: deployStart,
+  }
+  return deployer
+}
+
+const migrate = async (web3, network) => {
+  const funcs = dirFilesRequire(PathTable.migrations)
+  const userParams = require(PathTable.citaConfig).contractInfo
+
+  const defaultInfo = {
+    chainId: 0,
+    to: 'to',
+    privkey: 'privkey',
+    nonce: getRandomInt(),
+    quota: 999999,
+    validUntilBlock: 0,
+    version: 0,
+  }
+
+  Object.assign(defaultInfo, userParams)
+
+  const deployer = newDeployer(web3, defaultInfo)
+
+  const runAllFunc = async (web3) => {
+    const len = funcs.length
     for (let i = 0; i < len; i++) {
-      const { bytecode, abi } = cons[i]
-      const chainId = 0
-      const to = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-      const privkey = '352416e1c910e413768c51390dfd791b414212b7b4fe6b1a18f58007fa894214'
-      const nonce = getRandomInt()
-      const quota = 999999
-      const validUntilBlock = 0
-      const version = 0
-      const info = { bytecode, abi, to, chainId, privkey, nonce, quota, validUntilBlock, version }
-      const ins = await deployer(info, web3)
-      insList.push(ins)
+      const func = funcs[i]
+      await func(deployer, network)
     }
   }
-  await deployAll()
-  return insList
-}
-
-const migrate = async (web3) => {
-  const insList = await deploy(web3)
-  insList.forEach((ins) => {
-    console.log('address:', ins.address)
-  })
+  await runAllFunc(web3)
 }
 
 const main = () => {
-  const args = parsedCommandLine()
-  const web3 = parsedCommandWeb3(args)
-  migrate(web3)
+  const args = parsedCommandArgs()
+  const { web3, network } = parsedWeb3Network(args)
+  migrate(web3, network)
 }
 
 main()
