@@ -2,5 +2,4 @@
 .tern-port
 .vscode
 node_modules
-src
 src.backup

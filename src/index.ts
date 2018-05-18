@@ -5,7 +5,7 @@ import * as path from 'path'
 import deployer from './deployer'
 import * as Web3 from 'cita-web3'
 import { getRandomInt } from './contract_utils'
-import log from './log'
+// import log from './log'
 
 const rootPath = process.cwd()
 
