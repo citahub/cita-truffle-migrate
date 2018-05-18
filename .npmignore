@@ -2,3 +2,4 @@ yarn.lock
 src
 src.backup
 tsconfig.json
+.vscode
