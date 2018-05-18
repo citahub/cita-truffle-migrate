@@ -1,20 +1,23 @@
 {
-    "compilerOptions": {
-        "outDir": "dist",
-        "module": "commonjs",
-        "target": "es5",
-        "lib": ["es6", "dom", "esnext", "es2017"],
-        "sourceMap": true,
-        "allowJs": true,
-        "moduleResolution": "node",
-        "experimentalDecorators": true,
-        // "noImplicitReturns": true,
-        // "noImplicitThis": false,
-        // "noImplicitAny": true,
-        "removeComments": true,
-        // "strictNullChecks": true,
-        "allowSyntheticDefaultImports": true
-    },
-    "exclude": ["node_modules", "dist", "scripts", "webpack"],
-    "types": ["typePatches"]
+  "compilerOptions": {
+    "sourceRoot": "src",
+    "outDir": "dist",
+    "module": "commonjs",
+    "target": "es5",
+    "lib": ["es6", "dom", "esnext", "es2017"],
+    "sourceMap": true,
+    "allowJs": true,
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    // "noImplicitReturns": true,
+    // "noImplicitThis": false,
+    // "noImplicitAny": true,
+    // "strictNullChecks": true,
+    "removeComments": true,
+    "allowSyntheticDefaultImports": true,
+    "watch": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "src.backup"],
+  "types": ["typePatches"]
 }

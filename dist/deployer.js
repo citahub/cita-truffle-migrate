@@ -1,3 +1,4 @@
+"use strict";
 var __assign = (this && this.__assign) || Object.assign || function(t) {
     for (var s, i = 1, n = arguments.length; i < n; i++) {
         s = arguments[i];
@@ -42,84 +43,93 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 var _this = this;
-var Web3 = require('cita-web3');
-var contractUtils = require('./contract_utils');
-var utils = require('./utils');
-var log = require('./log');
-log.t('deployer start');
-var SERVER = 'http://47.75.129.215:1337/';
-var web3 = new Web3(new Web3.providers.HttpProvider(SERVER));
+Object.defineProperty(exports, "__esModule", { value: true });
+var contract_utils_1 = require("./contract_utils");
+var utils_1 = require("./utils");
 var abiTo = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-var deployer = {
-    deploy: function () { },
-};
-deployer.deploy();
-var storeAbiToBlockchainPromise = function (contract, abi, bytecode, params, chainId, code) { return function (resolve, reject) {
-    log.t('storeAbiToBlockchainPromise');
-    web3.eth.sendTransaction(__assign({}, params, { chainId: chainId, to: abiTo, data: code }), function (err, res) {
-        if (err) {
-            reject(err);
-        }
-        else {
-            resolve(contract);
-        }
-    });
-}; };
-var storeAbiToBlockchain = function (contract, abi, bytecode, params, chainId) {
-    log.t('storeAbiToBlockchain');
-    var address = contract.address;
-    var hex = utils.fromUtf8(JSON.stringify(abi));
-    if (hex.slice(0, 2) === '0x')
-        hex = hex.slice(2);
-    var code = (address.slice(0, 2) === '0x' ? address.slice(2) : address) + hex;
-    return new Promise(storeAbiToBlockchainPromise(contract, abi, bytecode, params, chainId, code));
-};
-var deployContractPromise = function (contract, abi, bytecode, params, chainId) { return function (resolve, reject) {
-    log.t('deployContractPromise');
-    contract.new(__assign({}, params, { data: bytecode, chainId: chainId }), function (err, contract) {
-        if (err) {
-            reject(err);
-        }
-        else if (contract.address) {
-            resolve(contract);
+var storeAbiToBlockchain = function (contract, contractInfo, web3) { return __awaiter(_this, void 0, void 0, function () {
+    var address, abi, privkey, nonce, quota, validUntilBlock, version, chainId, to, hex, data, contrac;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                address = contract.address;
+                abi = contractInfo.abi, privkey = contractInfo.privkey, nonce = contractInfo.nonce, quota = contractInfo.quota, validUntilBlock = contractInfo.validUntilBlock, version = contractInfo.version, chainId = contractInfo.chainId, to = contractInfo.to;
+                hex = utils_1.default.fromUtf8(JSON.stringify(abi));
+                hex = hex.slice(0, 2) === '0x' ? hex.slice(2) : hex;
+                data = (address.slice(0, 2) === '0x' ? address.slice(2) : address) + hex;
+                return [4, new Promise(function (resolve, reject) {
+                        var params = { privkey: privkey, nonce: nonce, quota: quota, validUntilBlock: validUntilBlock, version: version, chainId: chainId, to: to, data: data };
+                        web3.eth.sendTransaction(__assign({}, params), function (err, res) {
+                            if (err) {
+                                reject(err);
+                            }
+                            else {
+                                resolve(contract);
+                            }
+                        });
+                    })];
+            case 1:
+                contrac = _a.sent();
+                return [2, contrac];
         }
     });
-}; };
-var deployContract = function (contract, abi, bytecode, params, chainId) {
-    log.t('deployContract');
-    return new Promise(deployContractPromise(contract, abi, bytecode, params, chainId))
-        .then(function (contract) { return __awaiter(_this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4, storeAbiToBlockchain(contract, abi, bytecode, params, chainId)];
-                case 1: return [2, _a.sent()];
-            }
-        });
-    }); })
-        .then(function (contract) {
-        return contract;
-    })
-        .catch(function (err) {
-        throw err;
+}); };
+var deployContract = function (contract, contractInfo, web3) { return __awaiter(_this, void 0, void 0, function () {
+    var privkey, nonce, quota, bytecode, validUntilBlock, version, chainId, contrac;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                privkey = contractInfo.privkey, nonce = contractInfo.nonce, quota = contractInfo.quota, bytecode = contractInfo.bytecode, validUntilBlock = contractInfo.validUntilBlock, version = contractInfo.version, chainId = contractInfo.chainId;
+                return [4, new Promise(function (resolve, reject) {
+                        var data = bytecode;
+                        var params = { privkey: privkey, nonce: nonce, quota: quota, validUntilBlock: validUntilBlock, version: version, chainId: chainId, data: data };
+                        contract.new(__assign({}, params), function (err, contrac) {
+                            if (err) {
+                                reject(err);
+                            }
+                            else if (contrac.address) {
+                                resolve(contrac);
+                            }
+                        });
+                    })];
+            case 1:
+                contrac = _a.sent();
+                return [4, storeAbiToBlockchain(contrac, contractInfo, web3)];
+            case 2:
+                contrac = _a.sent();
+                return [2, contrac];
+        }
     });
-};
-module.exports = function (contractInfo) {
-    return new Promise(function (resolve, reject) {
-        log.t('deployerPromise');
-        var chainId = 1;
-        var bytecode = contractInfo.bytecode, abi = contractInfo.abi;
-        var contract = web3.eth.contract(abi);
-        contractUtils.initBlockNumber(web3, function (params) {
-            deployContract(contract, abi, bytecode, params, chainId)
-                .then(function (ins) {
-                console.log(ins.address);
-                resolve(ins);
-            })
-                .catch(function (err) {
-                console.error(err);
-                reject(err);
-            });
-        });
+}); };
+var deploy = function (contractInfo, web3) { return __awaiter(_this, void 0, void 0, function () {
+    var _this = this;
+    var contract, ins;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4, web3.eth.contract(contractInfo.abi)];
+            case 1:
+                contract = _a.sent();
+                return [4, new Promise(function (resolve, reject) {
+                        contract_utils_1.initBlockNumber(web3, function (blockNumber) { return __awaiter(_this, void 0, void 0, function () {
+                            var ins;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        contractInfo.validUntilBlock = blockNumber + 88;
+                                        return [4, deployContract(contract, contractInfo, web3)];
+                                    case 1:
+                                        ins = _a.sent();
+                                        resolve(ins);
+                                        return [2];
+                                }
+                            });
+                        }); });
+                    })];
+            case 2:
+                ins = _a.sent();
+                return [2, ins];
+        }
     });
-};
+}); };
+exports.default = deploy;
 //# sourceMappingURL=deployer.js.map

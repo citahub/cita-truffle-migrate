@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var BigNumber = require('bignumber.js');
 var sha3 = require('./sha3.js');
 var utf8 = require('utf8');
@@ -30,8 +32,8 @@ var unitMap = {
     gether: '1000000000000000000000000000',
     tether: '1000000000000000000000000000000',
 };
-var padLeft = function (string, chars, sign) {
-    return new Array(chars - string.length + 1).join(sign ? sign : '0') + string;
+var padLeft = function (string, chars) {
+    return new Array(chars - string.length + 1).join('0') + string;
 };
 var padRight = function (string, chars, sign) {
     return string + new Array(chars - string.length + 1).join(sign ? sign : '0');
@@ -266,7 +268,7 @@ var isTopic = function (topic) {
     }
     return false;
 };
-module.exports = {
+exports.default = {
     apadLeft: padLeft,
     padRight: padRight,
     toHex: toHex,

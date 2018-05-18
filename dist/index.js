@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -34,60 +36,97 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 var _this = this;
-var fs = require('fs');
-var path = require('path');
-var deployer = require('./deployer');
-var log = console.log.bind(console, '>>>');
-log('migrate start');
+Object.defineProperty(exports, "__esModule", { value: true });
+var fs = require("fs");
+var path = require("path");
+var deployer_1 = require("./deployer");
+var Web3 = require("cita-web3");
+var contract_utils_1 = require("./contract_utils");
+var rootPath = process.cwd();
 var dirFilesRequire = function (dir) {
-    var p = path.resolve(__dirname, dir);
+    var p = path.resolve(rootPath, dir);
     var files = fs.readdirSync(p);
     var a = [];
     files.forEach(function (file, i) {
-        var content = require(p + '/' + file);
+        var filePath = path.resolve(p, file);
+        var content = require(filePath);
         a.push(content);
     });
     return a;
 };
-var contracts = function () {
-    var dir = '../build/contracts';
+var contractFileNames = function () {
+    var dir = './build/contracts';
     var cons = dirFilesRequire(dir);
     return cons;
 };
-var deploy = function () { return __awaiter(_this, void 0, void 0, function () {
+var parsedCommandLine = function () {
+    var argv = process.argv;
+    var args = [];
+    if (argv.length >= 3) {
+        args = argv.splice(2);
+    }
+    return args;
+};
+var parsedNetorkWeb3 = function (network) {
+    var host = network.host, port = network.port;
+    var provider = network.provider;
+    if (!provider) {
+        var server = "http://" + host + ":" + port + "/";
+        provider = new Web3.providers.HttpProvider(server);
+    }
+    var web3 = new Web3(provider);
+    return web3;
+};
+var parsedCommandWeb3 = function (args) {
+    var p = path.resolve(rootPath, './truffle.js');
+    var config = require(p);
+    var networks = config.networks;
+    var network;
+    if (args[0] === '--network') {
+        network = networks[1];
+    }
+    else {
+        network = networks.development;
+    }
+    var web3 = parsedNetorkWeb3(network);
+    return web3;
+};
+var deploy = function (web3) { return __awaiter(_this, void 0, void 0, function () {
     var _this = this;
-    var cons, insList, deploy, deployAll;
+    var cons, insList, deployAll;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                cons = contracts();
+                cons = contractFileNames();
                 insList = [];
-                deploy = function (con, i) {
-                    var ins = deployer(con);
-                    insList.push(ins);
-                };
                 deployAll = function () { return __awaiter(_this, void 0, void 0, function () {
-                    var len, i, con, ins;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
+                    var len, i, _a, bytecode, abi, chainId, to, privkey, nonce, quota, validUntilBlock, version, info, ins;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
                             case 0:
                                 len = cons.length;
                                 i = 0;
-                                _a.label = 1;
+                                _b.label = 1;
                             case 1:
                                 if (!(i < len)) return [3, 4];
-                                con = cons[i];
-                                return [4, deployer(con)];
+                                _a = cons[i], bytecode = _a.bytecode, abi = _a.abi;
+                                chainId = 0;
+                                to = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+                                privkey = '352416e1c910e413768c51390dfd791b414212b7b4fe6b1a18f58007fa894214';
+                                nonce = contract_utils_1.getRandomInt();
+                                quota = 999999;
+                                validUntilBlock = 0;
+                                version = 0;
+                                info = { bytecode: bytecode, abi: abi, to: to, chainId: chainId, privkey: privkey, nonce: nonce, quota: quota, validUntilBlock: validUntilBlock, version: version };
+                                return [4, deployer_1.default(info, web3)];
                             case 2:
-                                ins = _a.sent();
+                                ins = _b.sent();
                                 insList.push(ins);
-                                _a.label = 3;
+                                _b.label = 3;
                             case 3:
                                 i++;
                                 return [3, 1];
-                            case 4:
-                                log('deploy all');
-                                return [2];
+                            case 4: return [2];
                         }
                     });
                 }); };
@@ -98,23 +137,24 @@ var deploy = function () { return __awaiter(_this, void 0, void 0, function () {
         }
     });
 }); };
-var test = function () { return __awaiter(_this, void 0, void 0, function () {
+var migrate = function (web3) { return __awaiter(_this, void 0, void 0, function () {
     var insList;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4, deploy()];
+            case 0: return [4, deploy(web3)];
             case 1:
                 insList = _a.sent();
-                log('这里应该最后出现');
-                return [4, log.apply(void 0, ['ins list'].concat(insList.map(function (ins) { return ins.address; })))];
-            case 2:
-                _a.sent();
+                insList.forEach(function (ins) {
+                    console.log('address:', ins.address);
+                });
                 return [2];
         }
     });
 }); };
 var main = function () {
-    test();
+    var args = parsedCommandLine();
+    var web3 = parsedCommandWeb3(args);
+    migrate(web3);
 };
 main();
 //# sourceMappingURL=index.js.map
