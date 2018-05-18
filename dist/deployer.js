@@ -44,21 +44,21 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
-var contract_utils_1 = require("./contract_utils");
 var utils_1 = require("./utils");
-var abiTo = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-var storeAbiToBlockchain = function (contract, contractInfo, web3) { return __awaiter(_this, void 0, void 0, function () {
-    var address, abi, privkey, nonce, quota, validUntilBlock, version, chainId, to, hex, data, contrac;
+var contract_utils_1 = require("./contract_utils");
+var storeAbiToBlockchain = function (contractInfo, web3, contract) { return __awaiter(_this, void 0, void 0, function () {
+    var address, privkey, nonce, quota, bytecode, validUntilBlock, version, chainId, abi, to, hex, code, con;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 address = contract.address;
-                abi = contractInfo.abi, privkey = contractInfo.privkey, nonce = contractInfo.nonce, quota = contractInfo.quota, validUntilBlock = contractInfo.validUntilBlock, version = contractInfo.version, chainId = contractInfo.chainId, to = contractInfo.to;
+                privkey = contractInfo.privkey, nonce = contractInfo.nonce, quota = contractInfo.quota, bytecode = contractInfo.bytecode, validUntilBlock = contractInfo.validUntilBlock, version = contractInfo.version, chainId = contractInfo.chainId, abi = contractInfo.abi, to = contractInfo.to;
                 hex = utils_1.default.fromUtf8(JSON.stringify(abi));
-                hex = hex.slice(0, 2) === '0x' ? hex.slice(2) : hex;
-                data = (address.slice(0, 2) === '0x' ? address.slice(2) : address) + hex;
+                hex = hex.slice(0, 2) === '0x' ? hex : hex.slice(2);
+                code = (address.slice(0, 2) === '0x' ? address.slice(2) : address) + hex;
                 return [4, new Promise(function (resolve, reject) {
-                        var params = { privkey: privkey, nonce: nonce, quota: quota, validUntilBlock: validUntilBlock, version: version, chainId: chainId, to: to, data: data };
+                        var data = code;
+                        var params = { privkey: privkey, nonce: nonce, quota: quota, validUntilBlock: validUntilBlock, version: version, to: to, data: data };
                         web3.eth.sendTransaction(__assign({}, params), function (err, res) {
                             if (err) {
                                 reject(err);
@@ -67,14 +67,17 @@ var storeAbiToBlockchain = function (contract, contractInfo, web3) { return __aw
                                 resolve(contract);
                             }
                         });
+                    }).catch(function (err) {
+                        console.error(err);
+                        return err;
                     })];
             case 1:
-                contrac = _a.sent();
-                return [2, contrac];
+                con = _a.sent();
+                return [2, con];
         }
     });
 }); };
-var deployContract = function (contract, contractInfo, web3) { return __awaiter(_this, void 0, void 0, function () {
+var deployContract = function (contractInfo, web3, contract) { return __awaiter(_this, void 0, void 0, function () {
     var privkey, nonce, quota, bytecode, validUntilBlock, version, chainId, contrac;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -82,7 +85,7 @@ var deployContract = function (contract, contractInfo, web3) { return __awaiter(
                 privkey = contractInfo.privkey, nonce = contractInfo.nonce, quota = contractInfo.quota, bytecode = contractInfo.bytecode, validUntilBlock = contractInfo.validUntilBlock, version = contractInfo.version, chainId = contractInfo.chainId;
                 return [4, new Promise(function (resolve, reject) {
                         var data = bytecode;
-                        var params = { privkey: privkey, nonce: nonce, quota: quota, validUntilBlock: validUntilBlock, version: version, chainId: chainId, data: data };
+                        var params = { privkey: privkey, nonce: nonce, quota: quota, validUntilBlock: validUntilBlock, version: version, data: data };
                         contract.new(__assign({}, params), function (err, contrac) {
                             if (err) {
                                 reject(err);
@@ -91,10 +94,13 @@ var deployContract = function (contract, contractInfo, web3) { return __awaiter(
                                 resolve(contrac);
                             }
                         });
+                    }).catch(function (err) {
+                        console.error(err);
+                        return err;
                     })];
             case 1:
                 contrac = _a.sent();
-                return [4, storeAbiToBlockchain(contrac, contractInfo, web3)];
+                return [4, storeAbiToBlockchain(contractInfo, web3, contrac)];
             case 2:
                 contrac = _a.sent();
                 return [2, contrac];
@@ -103,12 +109,12 @@ var deployContract = function (contract, contractInfo, web3) { return __awaiter(
 }); };
 var deploy = function (contractInfo, web3) { return __awaiter(_this, void 0, void 0, function () {
     var _this = this;
-    var contract, ins;
+    var bytecode, abi, contract, ins;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4, web3.eth.contract(contractInfo.abi)];
-            case 1:
-                contract = _a.sent();
+            case 0:
+                bytecode = contractInfo.bytecode, abi = contractInfo.abi;
+                contract = web3.eth.contract(abi);
                 return [4, new Promise(function (resolve, reject) {
                         contract_utils_1.initBlockNumber(web3, function (blockNumber) { return __awaiter(_this, void 0, void 0, function () {
                             var ins;
@@ -116,7 +122,7 @@ var deploy = function (contractInfo, web3) { return __awaiter(_this, void 0, voi
                                 switch (_a.label) {
                                     case 0:
                                         contractInfo.validUntilBlock = blockNumber + 88;
-                                        return [4, deployContract(contract, contractInfo, web3)];
+                                        return [4, deployContract(contractInfo, web3, contract)];
                                     case 1:
                                         ins = _a.sent();
                                         resolve(ins);
@@ -124,8 +130,11 @@ var deploy = function (contractInfo, web3) { return __awaiter(_this, void 0, voi
                                 }
                             });
                         }); });
+                    }).catch(function (err) {
+                        console.error(err);
+                        return err;
                     })];
-            case 2:
+            case 1:
                 ins = _a.sent();
                 return [2, ins];
         }

@@ -32,8 +32,8 @@ var unitMap = {
     gether: '1000000000000000000000000000',
     tether: '1000000000000000000000000000000',
 };
-var padLeft = function (string, chars) {
-    return new Array(chars - string.length + 1).join('0') + string;
+var padLeft = function (string, chars, sign) {
+    return new Array(chars - string.length + 1).join(sign ? sign : '0') + string;
 };
 var padRight = function (string, chars, sign) {
     return string + new Array(chars - string.length + 1).join(sign ? sign : '0');
@@ -218,7 +218,7 @@ var toAddress = function (address) {
     if (/^[0-9a-f]{40}$/.test(address)) {
         return '0x' + address;
     }
-    return '0x' + padLeft(toHex(address).substr(2), 40);
+    return '0x' + padLeft(toHex(address).substr(2), 40, 0);
 };
 var isBigNumber = function (object) {
     return (object instanceof BigNumber ||

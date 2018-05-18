@@ -1,7 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var privkey = '352416e1c910e413768c51390dfd791b414212b7b4fe6b1a18f58007fa894214';
-var quota = 999999;
 var getRandomInt = function () {
     return Math.floor(Math.random() * 100).toString();
 };
@@ -39,21 +37,4 @@ var initBlockNumber = function (web3, callback) {
     });
 };
 exports.initBlockNumber = initBlockNumber;
-var initBlockNumber2 = function (web3, callback) {
-    web3.eth.getBlockNumber(function (err, res) {
-        if (!err) {
-            var commonParams = {
-                privkey: privkey,
-                nonce: getRandomInt(),
-                quota: quota,
-                validUntilBlock: res + 88,
-                version: 0,
-            };
-            callback(commonParams);
-        }
-        else {
-            console.error(err);
-        }
-    });
-};
 //# sourceMappingURL=contract_utils.js.map

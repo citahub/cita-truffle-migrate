@@ -8,7 +8,7 @@ module.exports = function (value, options) {
         value = CryptoJS.enc.Hex.parse(value);
     }
     return sha3(value, {
-        outputLength: 256
+        outputLength: 256,
     }).toString();
 };
 //# sourceMappingURL=sha3.js.map
