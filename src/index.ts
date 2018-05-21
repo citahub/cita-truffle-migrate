@@ -16,7 +16,7 @@ const rootPathOf = (filePath) => {
 }
 
 const PathTable = {
-  contracts: rootPathOf('./build/contracts'), 
+  contracts: rootPathOf('./build/contracts'),
   migrations: rootPathOf('./migrations'),
   truffleConfig: rootPathOf('./truffle.js'),
   citaConfig: rootPathOf('./truffle-cita.js'),
@@ -60,7 +60,7 @@ const parsedWeb3Network = (args: string[]) => {
   const { networks } = config
   let network
   if (args[0] === '--network') {
-    network = networks[1]
+    network = networks[args[1]]
   } else {
     network = networks.development
   }
@@ -68,7 +68,7 @@ const parsedWeb3Network = (args: string[]) => {
   return { web3, network }
 }
 
-const newDeployer = function(web3, userParams) {
+const newDeployer = (web3, userParams) => {
   const deployStart = async (contracsName) => {
     const conpath = path.resolve(PathTable.contracts, contracsName)
     const con = require(conpath)
@@ -84,23 +84,61 @@ const newDeployer = function(web3, userParams) {
   return deployer
 }
 
-const migrate = async (web3, network) => {
-  const funcs = dirFilesRequire(PathTable.migrations)
+const validParams = () => {
   const userParams = require(PathTable.citaConfig).contractInfo
-
-  const defaultInfo = {
-    chainId: 0,
-    to: 'to',
-    privkey: 'privkey',
+  const { privkey, chainId } = userParams
+  if (privkey === '' || typeof privkey !== 'string') {
+    throw '\nplease set your private key as a string, and make sure other people while not get it'
+  }
+  if (typeof chainId !== 'number') {
+    throw '\nplease set your chain id as a number'
+  }
+  const keyTypeTable = {
+    privkey: 'string',
+    chainId: 'number',
+    nonce: 'string',
+    quota: 'number',
+    version: 'number',
+    validUntilBlock: 'number',
+  }
+  const validParams = {
+    to: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     nonce: getRandomInt(),
     quota: 999999,
-    validUntilBlock: 0,
+    validUntilBlock: undefined,
     version: 0,
   }
+  const keys = Object.keys(keyTypeTable)
+  Object.keys(userParams).forEach((key) => {
+    if (keys.includes(key)) {
+      const value = userParams[key]
+      if (typeof value === keyTypeTable[key]) {
+        validParams[key] = value
+      } else {
+        throw `\nType Error: [${key}] should be a [${keyTypeTable[key]}]`
+      }
+    }
+  })
+  return validParams
+}
 
-  Object.assign(defaultInfo, userParams)
+const migrate = async (web3, network) => {
+  const funcs = dirFilesRequire(PathTable.migrations)
 
-  const deployer = newDeployer(web3, defaultInfo)
+  const params = validParams()
+
+  // const defaultInfo = {
+  //   // chainId: 0,
+  //   to: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  //   nonce: getRandomInt(),
+  //   quota: 999999,
+  //   validUntilBlock: undefined,
+  //   version: 0,
+  // }
+
+  // Object.assign(defaultInfo, userParams)
+
+  const deployer = newDeployer(web3, params)
 
   const runAllFunc = async (web3) => {
     const len = funcs.length

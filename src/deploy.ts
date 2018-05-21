@@ -14,7 +14,7 @@ const storeAbiToBlockchain = async (contractInfo, web3, contract) => {
   let con = await new Promise((resolve, reject) => {
     const data = code
     const params = { privkey, nonce, quota, validUntilBlock, version, to, data, chainId }
-    // // log('发送交易')
+    // log('发送交易')
     web3.eth.sendTransaction({ ...params }, (err, res) => {
       if (err) {
         reject(err)
@@ -37,6 +37,11 @@ const deployContract = async (contractInfo, web3, contract) => {
     const params = { privkey, nonce, quota, validUntilBlock, version, data, chainId }
     // log('创建新的合约对象')
     contract.new({ ...params }, (err, contrac) => {
+      // log('轮询获取合约地址')
+      // log(contrac.address)
+      for (let i = 0; i < 100; i++) {
+          
+      }
       if (err) {
         reject(err)
       } else if (contrac.address) {
@@ -53,16 +58,24 @@ const deployContract = async (contractInfo, web3, contract) => {
 }
 
 const deploy = async (contractInfo, web3) => {
-  const { bytecode, abi } = contractInfo
+  const { bytecode, abi, validUntilBlock } = contractInfo
   const contract = web3.eth.contract(abi)
   const ins = await new Promise((resolve, reject) => {
     // log('获取块高度')
-    initBlockNumber(web3, async (blockNumber) => {
-      contractInfo.validUntilBlock = blockNumber + 88
-      // log('部署合约')
-      const ins: any = await deployContract(contractInfo, web3, contract)
+    if (validUntilBlock === undefined) {
+      initBlockNumber(web3, async (blockNumber) => {
+        contractInfo.validUntilBlock = blockNumber + 88
+        // log('部署合约')
+        // log('contractInfo.validUntilBlock', contractInfo.validUntilBlock)
+        const ins: any = await deployContract(contractInfo, web3, contract)
+        resolve(ins)
+      })
+    } else if (typeof validUntilBlock === 'number') {
+      const ins: any = deployContract(contractInfo, web3, contract)
       resolve(ins)
-    })
+    } else {
+      reject()
+    }
   }).catch((err) => {
     console.error(err)
     return err
