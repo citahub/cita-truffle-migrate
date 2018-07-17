@@ -1,87 +1,78 @@
 import log from './log'
-import utils from './utils'
-import * as Web3 from 'cita-web3'
-import { initBlockNumber } from './contract_utils'
+import { fromUtf8 } from './contract_utils'
 
-const storeAbiToBlockchain = async (contractInfo, web3, contract) => {
-  const { address } = contract
-  const { privkey, nonce, quota, bytecode, validUntilBlock, version, chainId, abi, to } = contractInfo
-
-  let hex = utils.fromUtf8(JSON.stringify(abi))
-  hex = hex.slice(0, 2) === '0x' ? hex : hex.slice(2)
-  const code = (address.slice(0, 2) === '0x' ? address.slice(2) : address) + hex
-
-  let con = await new Promise((resolve, reject) => {
-    const data = code
-    const params = { privkey, nonce, quota, validUntilBlock, version, to, data, chainId }
-    // log('发送交易')
-    web3.eth.sendTransaction({ ...params }, (err, res) => {
-      if (err) {
-        reject(err)
-      } else {
-        // // log(contract.address)
-        resolve(contract)
-      }
+const pollingTransationReceipt = async (web3, hash) => {
+  let i = 0
+  let res = null
+  while (i < 10) {
+    res = await web3.appchain.getTransactionReceipt(hash)
+    await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve()
+      }, 1000)
     })
-  }).catch((err) => {
-    console.error(err)
-    return err
-  })
-  return con
+    i += 1
+    log('获取交易收据次数', i)
+    if (res) {
+      log('轮询结果', res)
+      const err = res.errorMessage
+      if (err === null) {
+        console.log('store abi successful')
+      } else {
+        console.error(err)
+      }
+      return
+    }
+  }
+  console.error('fetch transaction receipt overtime')
 }
 
-const deployContract = async (contractInfo, web3, contract) => {
-  const { privkey, nonce, quota, bytecode, validUntilBlock, version, chainId } = contractInfo
-  let contrac = await new Promise((resolve, reject) => {
-    const data = bytecode
-    const params = { privkey, nonce, quota, validUntilBlock, version, data, chainId }
-    // log('创建新的合约对象')
-    contract.new({ ...params }, (err, contrac) => {
-      // log('轮询获取合约地址')
-      // log(contrac.address)
-      for (let i = 0; i < 100; i++) {
-          
-      }
-      if (err) {
-        reject(err)
-      } else if (contrac.address) {
-        resolve(contrac)
-      }
-    })
-  }).catch((err) => {
-    console.error(err)
-    return err
-  })
-  // log('存储 abi')
-  contrac = await storeAbiToBlockchain(contractInfo, web3, contrac)
-  return contrac
+const storeAbiToBlockchain = async (contractInfo, web3, address) => {
+  const { abi, validUntilBlock, chainId, nonce, value, version, quota, privateKey } = contractInfo
+  let abibytes = fromUtf8(JSON.stringify(abi))
+  const data = address + abibytes
+  const tx = {
+    to: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    quota,
+    version,
+    value,
+    nonce,
+    data,
+    validUntilBlock,
+    chainId,
+    privateKey,
+  }
+  let res = await web3.eth.sendTransaction(tx)
+  const hash = res.result.hash
+  log('交易哈希', hash)
+  res = pollingTransationReceipt(web3, hash)
+}
+
+const deployContract = async (contractInfo, web3) => {
+  const { bytecode, privateKey, from, nonce, quota, value, chainId, version } = contractInfo
+  const params = { privateKey, from, nonce, quota, value, chainId, version }
+  let res
+  res = await web3.cita.deploy(bytecode, params)
+  const errDeploy = res.result.errorMessage
+  if (errDeploy) {
+    throw errDeploy
+  }
+  log('deploy ', res)
+  const address = res.result.contractAddress
+  console.log('contract deployed successful, address:', address)
+  await storeAbiToBlockchain(contractInfo, web3, address)
+  log('store abi 是异步的么?')
+  return address
 }
 
 const deploy = async (contractInfo, web3) => {
-  const { bytecode, abi, validUntilBlock } = contractInfo
-  const contract = web3.eth.contract(abi)
-  const ins = await new Promise((resolve, reject) => {
-    // log('获取块高度')
-    if (validUntilBlock === undefined) {
-      initBlockNumber(web3, async (blockNumber) => {
-        contractInfo.validUntilBlock = blockNumber + 88
-        // log('部署合约')
-        // log('contractInfo.validUntilBlock', contractInfo.validUntilBlock)
-        const ins: any = await deployContract(contractInfo, web3, contract)
-        resolve(ins)
-      })
-    } else if (typeof validUntilBlock === 'number') {
-      const ins: any = deployContract(contractInfo, web3, contract)
-      resolve(ins)
-    } else {
-      reject()
-    }
-  }).catch((err) => {
-    console.error(err)
-    return err
-  })
-  // log('获得返回值')
-  return ins
+  const { validUntilBlock } = contractInfo
+  if (validUntilBlock === undefined) {
+    const res = await web3.eth.getBlockNumber()
+    const num = Number(res.result)
+    contractInfo.validUntilBlock = +num + 88
+  }
+  await deployContract(contractInfo, web3)
 }
 
 export default deploy

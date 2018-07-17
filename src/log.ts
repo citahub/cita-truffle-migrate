@@ -1,6 +1,18 @@
 // const lg = console.log.bind(console)
 
-const log = console.log.bind(console, '>>>')
+const createdLog = () => {
+  let open
+  // open = true
+  let log
+  if (open) {
+    log = console.log.bind(console, '>>>')
+  } else {
+    log = () => {}
+	}
+	return log
+}
+
+const log = createdLog()
 
 // log.t = function(title) {
 //   lg('--- ' + title + ' ---')

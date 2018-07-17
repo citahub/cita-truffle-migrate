@@ -3,7 +3,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import deploy from './deploy'
-import * as Web3 from 'cita-web3'
+import Web3 from '@nervos/web3'
 import { getRandomInt } from './contract_utils'
 import log from './log'
 
@@ -43,18 +43,17 @@ const parsedCommandArgs = () => {
   return args
 }
 
-const newProviderWeb3 = (network: { host: string; port: number; provider: any }) => {
-  const { host, port } = network
+const newProviderWeb3 = (network) => {
   let { provider } = network
   if (!provider) {
-    const server = `http://${host}:${port}/`
-    provider = new Web3.providers.HttpProvider(server)
+    const { host, port } = network
+    provider = `http://${host}:${port}/`
   }
-  const web3 = new Web3(provider)
+  const web3 = Web3(provider)
   return web3
 }
 
-const parsedWeb3Network = (args: string[]) => {
+const parsedWeb3Network = (args) => {
   const p = PathTable.citaConfig
   const config = require(p)
   const { networks } = config
@@ -69,15 +68,12 @@ const parsedWeb3Network = (args: string[]) => {
 }
 
 const newDeployer = (web3, userParams) => {
-  const deployStart = async (contracsName) => {
-    const conpath = path.resolve(PathTable.contracts, contracsName)
-    const con = require(conpath)
-    const { bytecode, abi } = con
+  const deployStart = async (contracName) => {
+    const p = path.resolve(PathTable.contracts, contracName)
+    const { bytecode, abi } = require(p)
     const info = Object.assign({ bytecode, abi }, userParams)
-    const ins = await deploy(info, web3)
-    console.log('address:', ins.address)
-    return ins
-  }
+    await deploy(info, web3)
+    }
   const deployer = {
     deploy: deployStart,
   }
@@ -86,15 +82,15 @@ const newDeployer = (web3, userParams) => {
 
 const validParams = () => {
   const userParams = require(PathTable.citaConfig).contractInfo
-  const { privkey, chainId } = userParams
-  if (privkey === '' || typeof privkey !== 'string') {
+  const { privateKey, chainId } = userParams
+  if (privateKey === '' || typeof privateKey !== 'string') {
     throw '\nplease set your private key as a string, and make sure other people while not get it'
   }
   if (typeof chainId !== 'number') {
     throw '\nplease set your chain id as a number'
   }
   const keyTypeTable = {
-    privkey: 'string',
+    privateKey: 'string',
     chainId: 'number',
     nonce: 'string',
     quota: 'number',
@@ -102,11 +98,12 @@ const validParams = () => {
     validUntilBlock: 'number',
   }
   const validParams = {
-    to: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    // to: '',
     nonce: getRandomInt(),
     quota: 999999,
     validUntilBlock: undefined,
     version: 0,
+    value: '0',
   }
   const keys = Object.keys(keyTypeTable)
   Object.keys(userParams).forEach((key) => {
@@ -127,27 +124,18 @@ const migrate = async (web3, network) => {
 
   const params = validParams()
 
-  // const defaultInfo = {
-  //   // chainId: 0,
-  //   to: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  //   nonce: getRandomInt(),
-  //   quota: 999999,
-  //   validUntilBlock: undefined,
-  //   version: 0,
-  // }
-
-  // Object.assign(defaultInfo, userParams)
-
   const deployer = newDeployer(web3, params)
 
-  const runAllFunc = async (web3) => {
-    const len = funcs.length
-    for (let i = 0; i < len; i++) {
-      const func = funcs[i]
-      await func(deployer, network)
-    }
+  const len = funcs.length
+  for (let i = 0; i < len; i++) {
+    const func = funcs[i]
+    await func(deployer, network)
   }
-  await runAllFunc(web3)
+
+  // const runAllFunc = async () => {
+    
+  // }
+  // await runAllFunc()
 }
 
 const main = () => {

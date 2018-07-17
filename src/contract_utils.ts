@@ -1,41 +1,28 @@
+import log from './log'
+import * as utf8 from "utf8";
+const utf8 = require('utf8')
+
 const getRandomInt = function() {
   return Math.floor(Math.random() * 100).toString()
 }
 
-const getTransactionReceipt = function(web3, hash, callback) {
-  // wait for receipt
-  var count = 0
-  var filter = web3.eth.filter('latest', function(err) {
-    if (!err) {
-      count++
-      if (count > 20) {
-        filter.stopWatching(function() {})
-      } else {
-        web3.eth.getTransactionReceipt(hash, function(e, receipt) {
-          if (receipt) {
-            filter.stopWatching(function() {})
-            callback(receipt)
-          }
-        })
-      }
-    } else {
-      // no handle
+const fromUtf8 = function(str) {
+  str = utf8.encode(str)
+  let hex = ''
+  const size = str.length
+  for (let i = 0; i < size; i++) {
+    const code = str.charCodeAt(i)
+    if (code === 0) {
+      break
     }
-  })
+    const n = code.toString(16)
+    hex += n.length < 2 ? '0' + n : n
+  }
+
+  return hex
 }
 
-const initBlockNumber = function(web3, callback) {
-  web3.eth.getBlockNumber(function(err, blockNumber) {
-    if (!err) {
-      callback(blockNumber)
-    } else {
-      console.error(err)
-    }
-  })
-}
-
-export {
-  getTransactionReceipt,
-  initBlockNumber,
-  getRandomInt,
+export { 
+  getRandomInt, 
+  fromUtf8,
 }
