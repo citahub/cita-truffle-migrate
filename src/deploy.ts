@@ -39,7 +39,7 @@ const storeAbiToBlockchain = async (contractInfo, web3, address) => {
   const data = address + abibytes
   const tx = {
     from: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-    to: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    to: '0xffffffffffffffffffffffffffffffffff010001',
     quota,
     version,
     value,
