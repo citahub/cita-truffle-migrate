@@ -1,11 +1,36 @@
 import log from './log'
 import { fromUtf8 } from './contract_utils'
 
+const assertAbiIsStored = async (receipt, web3, address) => {
+  let err
+  err = receipt.errorMessage
+  if (err === null) {
+    let abi = await web3.appchain.getAbi(address)
+    if (abi === '0x') {
+      err = 'store abi failure'
+    } else {
+      log('get abi receipt', abi)
+      console.log('store abi success')
+      return
+    }
+  }
+  throw err
+}
+
 const pollingTransationReceipt = async (address, web3, hash) => {
   let i = 0
-  let res = null
+  let receipt = null
   while (i < 10) {
-    res = await web3.appchain.getTransactionReceipt(hash)
+    receipt = await web3.appchain.getTransactionReceipt(hash)
+    if (receipt) {
+      log('轮询结果', receipt)
+      try {
+        await assertAbiIsStored(receipt, web3, address)
+      } catch (err) {
+        console.error(err)
+      }
+      return
+    }
     await new Promise((resolve, reject) => {
       setTimeout(() => {
         resolve()
@@ -13,22 +38,6 @@ const pollingTransationReceipt = async (address, web3, hash) => {
     })
     i += 1
     log('获取交易收据次数', i)
-    if (res) {
-      log('轮询结果', res)
-      const err = res.errorMessage
-      if (err === null) {
-        let abi = await web3.appchain.getAbi(address)
-        log('get abi res', res)
-        if (abi) {
-          console.log('store abi success')
-        } else {
-          console.error('store abi failure')
-        }
-      } else {
-        console.error(err)
-      }
-      return
-    }
   }
   console.error('fetch transaction receipt overtime')
 }
@@ -39,7 +48,8 @@ const storeAbiToBlockchain = async (contractInfo, web3, address) => {
   const data = address + abibytes
   const tx = {
     from: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-    to: '0xffffffffffffffffffffffffffffffffff010001',
+    // to: '0xffffffffffffffffffffffffffffffffff010001',
+    to: 'ffffffffffffffffffffffffffffffffff010001',
     quota,
     version,
     value,
@@ -76,7 +86,6 @@ const deployContract = async (contractInfo, web3) => {
   const address = res.contractAddress
   console.log('contract deployed successful, address:', address)
   await storeAbiToBlockchain(contractInfo, web3, address)
-  log('store abi 是异步的么?')
   return address
 }
 
