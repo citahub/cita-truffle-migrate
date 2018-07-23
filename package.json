@@ -1,6 +1,6 @@
 {
     "name": "@cita/truffle-migrate",
-    "version": "0.0.7",
+    "version": "0.0.9",
     "description": "",
     "main": "index.js",
     "scripts": {
@@ -17,12 +17,12 @@
     },
     "homepage": "https://github.com/CITA-Toys/cita-truffle-migrate#readme",
     "dependencies": {
-        "@nervos/web3": "^0.17.23",
-        "utf8": "^3.0.0"
+        "@nervos/web3": "0.17.35",
+        "utf8": "3.0.0"
     },
     "devDependencies": {
-        "@types/node": "^10.1.0",
-        "typescript": "^2.8.3"
+        "@types/node": "10.1.0",
+        "typescript": "2.8.3"
     },
     "bin": {
         "cita-migrate": "./dist/index.js"

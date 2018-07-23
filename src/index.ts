@@ -68,6 +68,7 @@ const parsedWeb3Network = (args) => {
 }
 
 const newDeployer = (web3, userParams) => {
+  log('newDeployer')
   const deployStart = async (contracName) => {
     const p = path.resolve(PathTable.contracts, contracName)
     const { bytecode, abi } = require(p)
@@ -120,6 +121,7 @@ const validParams = () => {
 }
 
 const migrate = async (web3, network) => {
+  log('migrate')
   const funcs = dirFilesRequire(PathTable.migrations)
 
   const params = validParams()
@@ -139,6 +141,7 @@ const migrate = async (web3, network) => {
 }
 
 const main = () => {
+  log('start')
   const args = parsedCommandArgs()
   const { web3, network } = parsedWeb3Network(args)
   migrate(web3, network)
