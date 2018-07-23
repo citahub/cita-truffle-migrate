@@ -2,7 +2,7 @@
 
 const createdLog = () => {
   let open
-  // open = true
+  open = true
   let log
   if (open) {
     log = console.log.bind(console, '>>>')

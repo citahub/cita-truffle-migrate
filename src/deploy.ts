@@ -1,7 +1,7 @@
 import log from './log'
 import { fromUtf8 } from './contract_utils'
 
-const pollingTransationReceipt = async (web3, hash) => {
+const pollingTransationReceipt = async (address, web3, hash) => {
   let i = 0
   let res = null
   while (i < 10) {
@@ -17,7 +17,13 @@ const pollingTransationReceipt = async (web3, hash) => {
       log('轮询结果', res)
       const err = res.errorMessage
       if (err === null) {
-        console.log('store abi successful')
+        let abi = await web3.appchain.getAbi(address)
+        log('get abi res', res)
+        if (abi) {
+          console.log('store abi success')
+        } else {
+          console.error('store abi failure')
+        }
       } else {
         console.error(err)
       }
@@ -44,17 +50,16 @@ const storeAbiToBlockchain = async (contractInfo, web3, address) => {
     privateKey,
   }
   log('store abi tx', tx)
-  let res 
+  let res
   try {
     res = await web3.appchain.sendTransaction(tx).catch(console.error)
     log('web3.appchain.sendTransaction res', res)
     const hash = res.hash
     log('交易哈希', hash)
-    res = pollingTransationReceipt(web3, hash)
+    res = pollingTransationReceipt(address, web3, hash)
   } catch (err) {
     console.error(err)
   }
-  
 }
 
 const deployContract = async (contractInfo, web3) => {
