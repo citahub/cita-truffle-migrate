@@ -2,25 +2,11 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import deploy from './deploy'
 import Web3 from '@nervos/web3'
-import { getRandomInt } from './contract_utils'
-import log from './log'
-
-const __root = process.cwd()
-
-const rootPathOf = (filePath) => {
-  const rootPath = __root
-  const p = path.resolve(rootPath, filePath)
-  return p
-}
-
-const PathTable = {
-  contracts: rootPathOf('./build/contracts'),
-  migrations: rootPathOf('./migrations'),
-  truffleConfig: rootPathOf('./truffle.js'),
-  citaConfig: rootPathOf('./truffle-cita.js'),
-}
+import { PathTable, rootPathOf } from './config/path'
+import newDeployer from './deployer'
+import { getRandomInt } from './utils/contract_utils'
+import log from './utils/log'
 
 const dirFilesRequire = (dir: string) => {
   const p = rootPathOf(dir)
@@ -67,20 +53,6 @@ const parsedWeb3Network = (args) => {
   return { web3, network }
 }
 
-const newDeployer = (web3, userParams) => {
-  log('newDeployer')
-  const deployStart = async (contracName) => {
-    const p = path.resolve(PathTable.contracts, contracName)
-    const { bytecode, abi } = require(p)
-    const info = Object.assign({ bytecode, abi }, userParams)
-    await deploy(info, web3)
-    }
-  const deployer = {
-    deploy: deployStart,
-  }
-  return deployer
-}
-
 const validParams = () => {
   const userParams = require(PathTable.citaConfig).contractInfo
   const { privateKey, chainId } = userParams
@@ -100,6 +72,9 @@ const validParams = () => {
   }
   const validParams = {
     // to: '',
+    from: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    // to: '0xffffffffffffffffffffffffffffffffff010001',
+    to: 'ffffffffffffffffffffffffffffffffff010001',
     nonce: getRandomInt(),
     quota: 999999,
     validUntilBlock: undefined,
@@ -121,21 +96,21 @@ const validParams = () => {
 }
 
 const migrate = async (web3, network) => {
-  log('migrate')
-  const funcs = dirFilesRequire(PathTable.migrations)
+  const migrations = dirFilesRequire(PathTable.migrations)
 
   const params = validParams()
 
   const deployer = newDeployer(web3, params)
 
-  const len = funcs.length
+  const len = migrations.length
   for (let i = 0; i < len; i++) {
-    const func = funcs[i]
-    await func(deployer, network)
+    // 这里需要引入 vm 虚拟机或其他机制
+    const migrate = migrations[i]
+    migrate(deployer, network)
   }
 
   // const runAllFunc = async () => {
-    
+
   // }
   // await runAllFunc()
 }
