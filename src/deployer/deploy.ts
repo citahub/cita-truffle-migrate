@@ -5,7 +5,7 @@ const assertAbiIsStored = async (receipt, web3, address) => {
   let err
   err = receipt.errorMessage
   if (err === null) {
-    let abi = await web3.appchain.getAbi(address)
+    const abi = await web3.appchain.getAbi(address)
     if (abi === '0x') {
       err = 'store abi failure'
     } else {

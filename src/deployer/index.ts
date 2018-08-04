@@ -31,15 +31,19 @@ const newDeployer = (web3, userParams) => {
     throw '{overwrite: false} is not supported'
   }
 
-  const deployMany = async () => {
+  const deployMany = async (argslist) => {
     // TODO: deploy([[A, arg1, arg2, ...],B,[C, arg1]]
-    throw '[[A, arg1, arg2, ...],B,[C, arg1]] is not supported'
+    // throw '[[A, arg1, arg2, ...],B,[C, arg1]] is not supported'
+    const deploys = argslist.map(async (args) => {
+      return await deployByArguments(args)
+    })
+    return Promise.all(deploys)
   }
 
   const deployByArguments = async (args) => {
     if (Array.isArray(args[0])) {
       const arglist = args[0]
-      return await deployMany()
+      return await deployMany(args)
     } else {
       // TODO: 需要 artifact.require
       const artifact = args.shift()
