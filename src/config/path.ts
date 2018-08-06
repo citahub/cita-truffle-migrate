@@ -13,8 +13,7 @@ const rootPathOf = (filePath) => {
 const PathTable = {
   contracts: rootPathOf('./build/contracts'),
   migrations: rootPathOf('./migrations'),
-  truffleConfig: rootPathOf('./truffle.js'),
-  citaConfig: rootPathOf('./truffle-cita.js'),
+  appchainConfig: rootPathOf('./truffle-appchain.js'),
 }
 
 export { __root, PathTable, rootPathOf }
