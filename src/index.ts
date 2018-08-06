@@ -40,7 +40,7 @@ const newProviderWeb3 = (network) => {
 }
 
 const parsedWeb3Network = (args) => {
-  const p = PathTable.citaConfig
+  const p = PathTable.appchainConfig
   const config = require(p)
   const { networks } = config
   let network
@@ -54,7 +54,7 @@ const parsedWeb3Network = (args) => {
 }
 
 const validParams = () => {
-  const userParams = require(PathTable.citaConfig).contractInfo
+  const userParams = require(PathTable.appchainConfig).contractInfo
   const { privateKey, chainId } = userParams
   if (privateKey === '' || typeof privateKey !== 'string') {
     throw '\nplease set your private key as a string, and make sure other people while not get it'
