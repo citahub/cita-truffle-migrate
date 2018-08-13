@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/cryptape/appchain-turffle-migrate#readme",
   "dependencies": {
+    "@nervos/chain": "^0.17.5",
     "@nervos/web3": "0.17.35",
     "async": "^2.6.1",
     "original-require": "^1.0.1",

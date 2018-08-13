@@ -1,8 +1,8 @@
 // const lg = console.log.bind(console)
 
 const createdLog = () => {
-  return () => {}
-	// return console.log.bind(console, '>>>')
+  // return () => {}
+	return console.log.bind(console, '>>>')
 }
 
 const log = createdLog()

@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@nervos/chain@^0.17.5":
+  version "0.17.5"
+  resolved "https://registry.yarnpkg.com/@nervos/chain/-/chain-0.17.5.tgz#d11aba78698c55d3b4394690f17fc44b6ce6be56"
+  dependencies:
+    "@nervos/signer" "^1.0.29"
+    web3 "^1.0.0-beta.34"
+
 "@nervos/signer@^1.0.19":
   version "1.0.21"
   resolved "https://registry.yarnpkg.com/@nervos/signer/-/signer-1.0.21.tgz#9380a8c313025e3114cae9aa0985cafd68c5e69c"
@@ -11,6 +18,15 @@
     ec "^0.0.1"
     eccrypto "^1.0.3"
     elliptic "^6.4.0"
+    web3 "^1.0.0-beta.34"
+
+"@nervos/signer@^1.0.29":
+  version "1.0.29"
+  resolved "https://registry.yarnpkg.com/@nervos/signer/-/signer-1.0.29.tgz#13f6dd9c13dbad386862493dd709591371e5e26d"
+  dependencies:
+    ec "^0.0.1"
+    elliptic "^6.4.0"
+    google-protobuf "^3.5.0"
     web3 "^1.0.0-beta.34"
 
 "@nervos/web3-plugin@^0.17.5":
