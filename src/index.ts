@@ -33,7 +33,11 @@ const newProviderWeb3 = (network) => {
   let { provider } = network
   if (!provider) {
     const { host, port } = network
-    provider = `http://${host}:${port}/`
+    if (host.startsWith('http')) {
+      provider = `${host}:${port}`
+    } else {
+      provider = `http://${host}:${port}/`
+    }
   }
   const web3 = Web3(provider)
   return web3
@@ -116,7 +120,7 @@ const migrate = async (web3, network) => {
 }
 
 const main = () => {
-  log('start')
+  // log('start')
   const args = parsedCommandArgs()
   const { web3, network } = parsedWeb3Network(args)
   migrate(web3, network)
