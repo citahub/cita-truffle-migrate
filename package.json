@@ -18,6 +18,14 @@
   "homepage": "https://github.com/cryptape/appchain-turffle-migrate#readme",
   "dependencies": {
     "@nervos/web3": "0.17.35",
+    "async": "^2.6.1",
+    "original-require": "^1.0.1",
+    "truffle-config": "^1.0.6",
+    "truffle-contract": "^3.0.6",
+    "truffle-contract-schema": "^2.0.1",
+    "truffle-expect": "^0.0.4",
+    "truffle-provisioner": "^0.1.1",
+    "truffle-require": "^1.0.7",
     "utf8": "3.0.0"
   },
   "devDependencies": {
