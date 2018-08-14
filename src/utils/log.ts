@@ -1,15 +1,8 @@
 // const lg = console.log.bind(console)
 
 const createdLog = () => {
-  let open
-  open = true
-  let log
-  if (open) {
-    log = console.log.bind(console, '>>>')
-  } else {
-    log = () => {}
-	}
-	return log
+  return () => {}
+	// return console.log.bind(console, '>>>')
 }
 
 const log = createdLog()
