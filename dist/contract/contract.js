@@ -5,6 +5,8 @@ var Nervos = require('@nervos/chain').default
 var StatusError = require('./statuserror.js')
 const { fromUtf8, pollingReceipt } = require('./utils')
 
+const log = console.log.bind(console, '-- contract/contract --\n')
+
 // For browserified version. If browserify gave us an empty version,
 // look for the one provided by the user.
 if (typeof Web3 == 'object' && Object.keys(Web3).length == 0) {
@@ -292,12 +294,13 @@ var contract = (function(module) {
 
     if (typeof contract == 'string') {
       var address = contract
-      var contract_class = constructor.web3.appchain.Contract(this.abi)
-      contract = contract_class.at(address)
-    } else {
-      Object.assign(contract, contract.methods)
-      Object.assign(contract, contract.events)
+      var contract = new constructor.web3.appchain.Contract(this.abi, address)
+      contract.address = address
+      // contract = contract_class.at(address)
     }
+
+    Object.assign(contract, contract.methods)
+    Object.assign(contract, contract.events)
 
     this.contract = contract
 
@@ -463,10 +466,11 @@ var contract = (function(module) {
             // self.web3 = web3
             // TODO: 检测是否有设置 validUntilBlock 参数
             var contract = new self.web3.appchain.Contract(self.abi)
+            const chainId = self.network_id.split('appchain')[1]
             Promise.resolve()
               .then(() => {
                 if (tx_params.validUntilBlock === -1) {
-                  console.log('fetching block number...')
+                  // console.log('fetching block number...')
                   return self.web3.appchain.getBlockNumber().then((res) => {
                     const num = Number(res)
                     tx_params.validUntilBlock = num + 88
@@ -474,7 +478,7 @@ var contract = (function(module) {
                 }
               })
               .then(() => {
-                const { privateKey, from, nonce, quota, chainId, version, validUntilBlock } = tx_params
+                const { privateKey, from, nonce, quota, version, validUntilBlock } = tx_params
                 const tx = { privateKey, from, nonce, quota, chainId, version, validUntilBlock }
                 return contract.deploy({ data: self.bytecode, arguments: args }).send(tx)
               })
@@ -490,11 +494,21 @@ var contract = (function(module) {
                 let abibytes = fromUtf8(JSON.stringify(self.abi))
                 // const address = res.contractAddress
                 const data = contract.address + abibytes
-                const { validUntilBlock, chainId, nonce, version, quota, privateKey, from } = tx_params
+                const { validUntilBlock, nonce, version, quota, privateKey, from } = tx_params
                 // 存 abi 的固定地址
                 const to = 'ffffffffffffffffffffffffffffffffff010001'
-                const tx = { from, to, quota, version, nonce, data, validUntilBlock, chainId, privateKey }
-                console.log('storing abi...')
+                const tx = {
+                  from,
+                  to,
+                  quota,
+                  version,
+                  nonce,
+                  data,
+                  validUntilBlock,
+                  chainId,
+                  privateKey,
+                }
+                // console.log('storing abi...')
                 return self.web3.appchain.sendTransaction(tx)
               })
               .then((res) => {
@@ -595,7 +609,6 @@ var contract = (function(module) {
         if (!self.isDeployed()) {
           throw new Error(self.contractName + ' has not been deployed to detected network (' + self.network_id + ')')
         }
-
         return new self(self.address)
       })
     },
@@ -635,60 +648,64 @@ var contract = (function(module) {
     },
 
     detectNetwork: function() {
-      // TODO: network_id 让用户自己配置, 默认 +1
-      // 现在直接返回 1
-      let id = '*'
-      if (this.network_id != null) {
-        id = this.network_id
-      }
-      return Promise.resolve(id)
       var self = this
 
       return new Promise(function(accept, reject) {
         // Try to detect the network we have artifacts for.
+        log('self.network_id', self.network_id)
         if (self.network_id) {
           // We have a network id and a configuration, let's go with it.
           if (self.networks[self.network_id] != null) {
             return accept(self.network_id)
           }
         }
-        self.web3.version.getNetwork(function(err, result) {
-          if (err) return reject(err)
-
-          var network_id = result.toString()
-
-          // If we found the network via a number, let's use that.
+        // 将 chain id 作为 network id
+        self.web3.appchain.getMetaData().then((res) => {
+          const network_id = 'appchain' + res.chainId.toString()
           if (self.hasNetwork(network_id)) {
             self.setNetwork(network_id)
             return accept()
           }
-
-          // Otherwise, go through all the networks that are listed as
-          // blockchain uris and see if they match.
-          var uris = Object.keys(self._json.networks).filter(function(network) {
-            return network.indexOf('blockchain://') == 0
-          })
-
-          var matches = uris.map(function(uri) {
-            return BlockchainUtils.matches.bind(BlockchainUtils, uri, self.web3.currentProvider)
-          })
-
-          Utils.parallel(matches, function(err, results) {
-            if (err) return reject(err)
-
-            for (var i = 0; i < results.length; i++) {
-              if (results[i]) {
-                self.setNetwork(uris[i])
-                return accept()
-              }
-            }
-
-            // We found nothing. Set the network id to whatever the provider states.
-            self.setNetwork(network_id)
-
-            accept()
-          })
+          self.setNetwork(network_id)
+          return accept()
         })
+        // self.web3.version.getNetwork(function(err, result) {
+        //   if (err) return reject(err)
+
+        //   var network_id = result.toString()
+
+        //   // If we found the network via a number, let's use that.
+        //   if (self.hasNetwork(network_id)) {
+        //     self.setNetwork(network_id)
+        //     return accept()
+        //   }
+
+        //   // Otherwise, go through all the networks that are listed as
+        //   // blockchain uris and see if they match.
+        //   var uris = Object.keys(self._json.networks).filter(function(network) {
+        //     return network.indexOf('blockchain://') == 0
+        //   })
+
+        //   var matches = uris.map(function(uri) {
+        //     return BlockchainUtils.matches.bind(BlockchainUtils, uri, self.web3.currentProvider)
+        //   })
+
+        //   Utils.parallel(matches, function(err, results) {
+        //     if (err) return reject(err)
+
+        //     for (var i = 0; i < results.length; i++) {
+        //       if (results[i]) {
+        //         self.setNetwork(uris[i])
+        //         return accept()
+        //       }
+        //     }
+
+        //     // We found nothing. Set the network id to whatever the provider states.
+        //     self.setNetwork(network_id)
+
+        //     accept()
+        //   })
+        // })
       })
     },
 
