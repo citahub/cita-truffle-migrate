@@ -1,6 +1,5 @@
 .DS_Store
 .tern-port
 .vscode
-dist
 node_modules
 src.backup
