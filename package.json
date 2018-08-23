@@ -41,6 +41,6 @@
     "typescript": "2.8.3"
   },
   "bin": {
-    "appchain-migrate": "./dist/index.js"
+    "appchain-migrate": "./dist/cli.js"
   }
 }
