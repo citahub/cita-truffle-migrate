@@ -4,4 +4,4 @@
 
 Truffle 是以太坊的一个开发框架. 
 
-AppChain-Truffle-Migrate 对 Truffle 进行了修改. 从而使开发者可以通过 Truffle 完成与 AppChain 的交互, 在 AppChain 上部署合约等
+AppChain-Truffle-Migrate 对 Truffle 进行了修改. 从而使开发者可以通过 Truffle 完成与 AppChain 的交互, 在 AppChain 上部署合约等操作
