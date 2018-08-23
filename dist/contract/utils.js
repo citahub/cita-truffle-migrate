@@ -17,13 +17,13 @@ const fromUtf8 = function(str) {
 }
 
 const pollingReceipt = (web3, hash) => {
-  console.log('hash:', hash)
+  // console.log('hash:', hash)
   let remain = 20
   const p = new Promise((resolve, reject) => {
     const func = () => {
       web3.appchain.getTransactionReceipt(hash).then((receipt) => {
         remain--
-        console.log(remain)
+        // console.log(remain)
         if (receipt) {
           resolve(receipt)
         } else if (remain < 0) {
