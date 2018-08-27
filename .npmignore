@@ -3,3 +3,4 @@ src
 src.backup
 tsconfig.json
 .vscode
+yarn-error.log
