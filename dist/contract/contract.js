@@ -444,27 +444,7 @@ var contract = (function(module) {
             if (tx_params.data == null) {
               tx_params.data = self.binary
             }
-
-            // TODO: 找到获取用户配置的方法
-            // const validParams = {
-            //   privateKey: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-            //   from: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-            //   to: 'ffffffffffffffffffffffffffffffffff010001',
-            //   nonce: 99,
-            //   quota: 999999,
-            //   version: 0,
-            //   value: '0',
-            //   chainId: 1,
-            // }
-            // const host = 'http://121.196.200.225:1337'
-            // Object.assign(tx_params, validParams)
-            // self.web3.setProvider(host)
-            // const web3 = Nervos()
-            // const web3 = Nervos(host)
-            // web3.setProvider(host)
-            // log('currentProvider', web3.currentProvider)
-            // self.web3 = web3
-            // TODO: 检测是否有设置 validUntilBlock 参数
+            // deploy
             var contract = new self.web3.appchain.Contract(self.abi)
             const chainId = self.network_id.split('appchain')[1]
             Promise.resolve()
@@ -652,7 +632,6 @@ var contract = (function(module) {
 
       return new Promise(function(accept, reject) {
         // Try to detect the network we have artifacts for.
-        log('self.network_id', self.network_id)
         if (self.network_id) {
           // We have a network id and a configuration, let's go with it.
           if (self.networks[self.network_id] != null) {
