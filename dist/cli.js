@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // require('source-map-support/register')
 
-var Config = require("truffle-config");
+// var Config = require("truffle-config");
 var Command = require("./lib/command");
 var TaskError = require("./lib/errors/taskerror");
 var TruffleError = require("truffle-error");
-var version = require("./lib/version");
+// var version = require("./lib/version");
 var OS = require("os");
 
 var command = new Command(require("./lib/commands"));
@@ -24,7 +24,7 @@ command.run(process.argv.slice(2), options, function(err) {
   if (err) {
     if (err instanceof TaskError) {
       command.args
-        .usage("Truffle v" + (version.bundle || version.core) + " - a development framework for Ethereum"
+        .usage(""
         + OS.EOL + OS.EOL
         + 'Usage: truffle <command> [options]')
         .epilog("See more at http://truffleframework.com/docs")

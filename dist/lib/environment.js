@@ -1,12 +1,12 @@
 var Web3 = require('web3')
 var TruffleError = require('truffle-error')
 var expect = require('truffle-expect')
-var Resolver = require('truffle-resolver')
+var Resolver = require('../resolver')
 var Artifactor = require('truffle-artifactor')
 // var TestRPC = require("ganache-cli");
-var spawn = require('child_process').spawn
-var path = require('path')
-var Develop = require('./develop')
+// var spawn = require('child_process').spawn
+// var path = require('path')
+// var Develop = require('./develop')
 
 var Environment = {
   // It's important config is a Config object and not a vanilla object

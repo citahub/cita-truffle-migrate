@@ -3,7 +3,7 @@ var fs = require("fs");
 var filter = require("async/filter");
 var detectSeries = require("async/detectSeries");
 var eachSeries = require("async/eachSeries")
-var contract = require("truffle-contract");
+// var contract = require("truffle-contract");
 var FSSource = require("./fs.js");
 
 function EPM(working_directory, contracts_build_directory) {
