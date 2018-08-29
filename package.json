@@ -1,6 +1,6 @@
 {
   "name": "@nervos/appchain-truffle-migrate",
-  "version": "0.0.12",
+  "version": "0.1.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -17,14 +17,30 @@
   },
   "homepage": "https://github.com/cryptape/appchain-turffle-migrate#readme",
   "dependencies": {
-    "@nervos/web3": "0.17.35",
-    "utf8": "3.0.0"
+    "@nervos/chain": "^0.17.5",
+    "async": "^2.6.1",
+    "cpr": "^3.0.1",
+    "lodash": "^4.17.10",
+    "node-ipc": "^9.1.1",
+    "original-require": "^1.0.1",
+    "temp": "^0.8.3",
+    "truffle-config": "^1.0.6",
+    "truffle-contract": "^3.0.6",
+    "truffle-contract-schema": "^2.0.1",
+    "truffle-deployer": "^2.0.7",
+    "truffle-expect": "^0.0.4",
+    "truffle-provisioner": "^0.1.1",
+    "truffle-require": "^1.0.7",
+    "truffle-workflow-compile": "^1.0.6",
+    "utf8": "3.0.0",
+    "web3": "0.20.6",
+    "yargs": "^12.0.1"
   },
   "devDependencies": {
     "@types/node": "10.1.0",
     "typescript": "2.8.3"
   },
   "bin": {
-    "appchain-migrate": "./dist/index.js"
+    "appchain-migrate": "./dist/cli.js"
   }
 }
