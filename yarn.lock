@@ -3,8 +3,8 @@
 
 
 "@nervos/chain@^0.17.16":
-  version "0.17.16"
-  resolved "https://registry.yarnpkg.com/@nervos/chain/-/chain-0.17.16.tgz#3e1c11d68501eed6a1b56bc4343a31e58b18f405"
+  version "0.17.17"
+  resolved "https://registry.yarnpkg.com/@nervos/chain/-/chain-0.17.17.tgz#383b7a0315087a3c27cbb1c45e9025621dbaf712"
   dependencies:
     "@nervos/signer" "^1.0.33"
     web3 "^1.0.0-beta.34"
@@ -1404,7 +1404,7 @@ mkdirp-promise@^5.0.1:
 
 mkdirp@*, mkdirp@0.5.1, "mkdirp@>=0.5 0", mkdirp@~0.5.1:
   version "0.5.1"
-  resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-0.5.1.tgz#30057438eac6cf7f8c4767f38648d6697d75c903"
+  resolved "http://registry.npmjs.org/mkdirp/-/mkdirp-0.5.1.tgz#30057438eac6cf7f8c4767f38648d6697d75c903"
   dependencies:
     minimist "0.0.8"
 
@@ -1855,7 +1855,7 @@ rimraf@2, rimraf@^2.2.8, rimraf@^2.5.4:
 
 rimraf@~2.2.6:
   version "2.2.8"
-  resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.2.8.tgz#e439be2aaee327321952730f99a8929e4fc50582"
+  resolved "http://registry.npmjs.org/rimraf/-/rimraf-2.2.8.tgz#e439be2aaee327321952730f99a8929e4fc50582"
 
 ripemd160@^2.0.0, ripemd160@^2.0.1:
   version "2.0.2"
