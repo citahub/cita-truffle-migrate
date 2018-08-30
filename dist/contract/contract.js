@@ -1,20 +1,19 @@
 var ethJSABI = require('ethjs-abi')
-var BlockchainUtils = require('truffle-blockchain-utils')
+// var BlockchainUtils = require('truffle-blockchain-utils')
 var Web3 = require('web3')
 var Nervos = require('@nervos/chain').default
 var StatusError = require('./statuserror.js')
-const { fromUtf8, pollingReceipt } = require('./utils')
-
-const log = console.log.bind(console, '-- contract/contract --\n')
+var { fromUtf8, pollingReceipt } = require('./utils')
+var log = require('../utils').title('contract/utils')
 
 // For browserified version. If browserify gave us an empty version,
 // look for the one provided by the user.
-if (typeof Web3 == 'object' && Object.keys(Web3).length == 0) {
-  Web3 = global.Web3
-}
-if (typeof Nervos == 'object' && Object.keys(Nervos).length == 0) {
-  Nervos = global.Nervos
-}
+// if (typeof Web3 == 'object' && Object.keys(Web3).length == 0) {
+//   Web3 = global.Web3
+// }
+// if (typeof Nervos == 'object' && Object.keys(Nervos).length == 0) {
+//   Nervos = global.Nervos
+// }
 
 var contract = (function(module) {
   // Planned for future features, logging, etc.
@@ -354,14 +353,8 @@ var contract = (function(module) {
       if (!provider) {
         throw new Error('Invalid provider passed to setProvider(); provider is ' + provider)
       }
-      if (!provider.host) {
-        return
-      }
       var wrapped = new Provider(provider)
-      // this.web3.setProvider(wrapped)
-      // TODO: 无法使用 setProvider, 所以重新创建一个 web3
-      // this.web3.setProvider(provider)
-      this.web3 = Nervos(wrapped)
+      this.web3.setProvider(wrapped)
       this.currentProvider = provider
     },
 
@@ -446,11 +439,13 @@ var contract = (function(module) {
             }
             // deploy
             var contract = new self.web3.appchain.Contract(self.abi)
+            // TODO: 这里需要手动加上, 需要修复
+            contract._requestManager.provider = self.web3.currentProvider
             const chainId = self.network_id.split('appchain')[1]
             Promise.resolve()
               .then(() => {
                 if (tx_params.validUntilBlock === -1) {
-                  // console.log('fetching block number...')
+                  log('fetching block number...')
                   return self.web3.appchain.getBlockNumber().then((res) => {
                     const num = Number(res)
                     tx_params.validUntilBlock = num + 88
@@ -463,6 +458,7 @@ var contract = (function(module) {
                 return contract.deploy({ data: self.bytecode, arguments: args }).send(tx)
               })
               .then((res) => {
+                log('deployed and fetching receipt...')
                 return pollingReceipt(self.web3, res.hash)
               })
               .then((res) => {
@@ -488,7 +484,7 @@ var contract = (function(module) {
                   chainId,
                   privateKey,
                 }
-                // console.log('storing abi...')
+                // log('storing abi...')
                 return self.web3.appchain.sendTransaction(tx)
               })
               .then((res) => {
@@ -505,7 +501,7 @@ var contract = (function(module) {
                 if (abi === '0x') {
                   throw 'store abi failure'
                 } else {
-                  console.log('store abi success')
+                  // log('store abi success')
                   accept(new self(contract))
                 }
               })
@@ -513,30 +509,6 @@ var contract = (function(module) {
                 console.error('ERROR:', err)
                 reject(err)
               })
-
-            // contract.setProvider(host)
-            // log('currentProvider', self.web3._requestManager.provider)
-            // contract
-            //   .deploy({ data: self.bytecode, arguments: args })
-            //   .send(tx_params)
-            //   .then((web3_instance) => {
-            //     log('sdf', web3_instance)
-            //     accept(new self(web3_instance))
-            //   })
-            // web3 0.9.0 and above calls new this callback twice.
-            // Why, I have no idea...
-            var intermediary = function(err, web3_instance) {
-              if (err != null) {
-                reject(err)
-                return
-              }
-
-              if (err == null && web3_instance != null && web3_instance.address != null) {
-                accept(new self(web3_instance))
-              }
-            }
-            // args.push(tx_params, intermediary)
-            // contract_class.new.apply(contract_class, args)
           })
         })
     },
@@ -633,58 +605,28 @@ var contract = (function(module) {
       return new Promise(function(accept, reject) {
         // Try to detect the network we have artifacts for.
         if (self.network_id) {
+          log(self.network_id)
           // We have a network id and a configuration, let's go with it.
           if (self.networks[self.network_id] != null) {
             return accept(self.network_id)
           }
         }
         // 将 chain id 作为 network id
-        self.web3.appchain.getMetaData().then((res) => {
-          const network_id = 'appchain' + res.chainId.toString()
-          if (self.hasNetwork(network_id)) {
+        log('get chain id')
+        self.web3.appchain
+          .getMetaData()
+          .then((res) => {
+            const network_id = 'appchain' + res.chainId.toString()
+            if (self.hasNetwork(network_id)) {
+              self.setNetwork(network_id)
+              return accept()
+            }
             self.setNetwork(network_id)
             return accept()
-          }
-          self.setNetwork(network_id)
-          return accept()
-        })
-        // self.web3.version.getNetwork(function(err, result) {
-        //   if (err) return reject(err)
-
-        //   var network_id = result.toString()
-
-        //   // If we found the network via a number, let's use that.
-        //   if (self.hasNetwork(network_id)) {
-        //     self.setNetwork(network_id)
-        //     return accept()
-        //   }
-
-        //   // Otherwise, go through all the networks that are listed as
-        //   // blockchain uris and see if they match.
-        //   var uris = Object.keys(self._json.networks).filter(function(network) {
-        //     return network.indexOf('blockchain://') == 0
-        //   })
-
-        //   var matches = uris.map(function(uri) {
-        //     return BlockchainUtils.matches.bind(BlockchainUtils, uri, self.web3.currentProvider)
-        //   })
-
-        //   Utils.parallel(matches, function(err, results) {
-        //     if (err) return reject(err)
-
-        //     for (var i = 0; i < results.length; i++) {
-        //       if (results[i]) {
-        //         self.setNetwork(uris[i])
-        //         return accept()
-        //       }
-        //     }
-
-        //     // We found nothing. Set the network id to whatever the provider states.
-        //     self.setNetwork(network_id)
-
-        //     accept()
-        //   })
-        // })
+          })
+          .catch((err) => {
+            reject(err)
+          })
       })
     },
 

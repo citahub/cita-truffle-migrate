@@ -23,7 +23,7 @@ var command = {
   },
   run: function (options, done) {
     var OS = require("os");
-    var Config = require("truffle-config");
+    var Config = require("../../config");
     var Contracts = require("../../workflow-compile");
     var Resolver = require("../../resolver");
     var Artifactor = require("truffle-artifactor");

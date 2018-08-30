@@ -1,4 +1,5 @@
 const utf8 = require('utf8')
+var log = require('../utils').title('contract/utils')
 
 const fromUtf8 = function(str) {
   str = utf8.encode(str)
@@ -17,33 +18,28 @@ const fromUtf8 = function(str) {
 }
 
 const pollingReceipt = (web3, hash) => {
-  // console.log('hash:', hash)
+  log('pollingReceipt hash:', hash)
   let remain = 20
   const p = new Promise((resolve, reject) => {
     const func = () => {
-      web3.appchain.getTransactionReceipt(hash).then((receipt) => {
-        remain--
-        // console.log(remain)
-        if (receipt) {
-          resolve(receipt)
-        } else if (remain < 0) {
-          reject('fetch transaction receipt overtime')
-        } else {
-          setTimeout(func, 1000);
-        }
-      })
+      web3.appchain
+        .getTransactionReceipt(hash)
+        .then((receipt) => {
+          remain--
+          log(remain)
+          if (receipt) {
+            resolve(receipt)
+          } else if (remain < 0) {
+            reject('fetch transaction receipt overtime')
+          } else {
+            setTimeout(func, 1000)
+          }
+        })
+        .catch((err) => {
+          reject(err)
+        })
     }
     func()
-    // let interval = setInterval(async () => {
-    //   remain = remain - 1
-    //   const receipt = web3.appchain.getTransactionReceipt(hash)
-    //   if (receipt) {
-    //     clearInterval(interval)
-    //     resolve(receipt)
-    //   } else if (remain < 0) {
-    //     reject('fetch transaction receipt overtime')
-    //   }
-    // }, 1000)
   })
   return p
 }
