@@ -4,3 +4,4 @@ src.backup
 tsconfig.json
 .vscode
 yarn-error.log
+temp.js
