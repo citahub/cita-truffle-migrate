@@ -8,6 +8,7 @@ var async = require('async')
 var Web3 = require('@nervos/chain').default
 var expect = require('truffle-expect')
 var Deployer = require('truffle-deployer')
+var log = require('../utils').title('migrate/index')
 
 function Migration(file) {
   this.file = path.resolve(file)
@@ -73,8 +74,8 @@ Migration.prototype.run = function(options, callback) {
       })
   }
 
-  //TODO: 无法获取 accounts, 所以需要用户配置
-  const accounts = ['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa']
+  const { address: accounts } = web3.appchain.accounts.privateKeyToAccount(options.privateKey)
+  log('accounts:', accounts)
   Require.file(
     {
       file: self.file,
@@ -90,23 +91,6 @@ Migration.prototype.run = function(options, callback) {
       finish()
     }
   )
-
-  // web3.eth.getAccounts(function(err, accounts) {
-  //   if (err) return callback(err);
-
-  //   Require.file({
-  //     file: self.file,
-  //     context: context,
-  //     resolver: resolver,
-  //     args: [deployer],
-  //   }, function(err, fn) {
-  //     if (!fn || !fn.length || fn.length == 0) {
-  //       return callback(new Error("Migration " + self.file + " invalid or does not take any parameters"));
-  //     }
-  //     fn(deployer, options.network, accounts);
-  //     finish();
-  //   });
-  // });
 }
 
 var Migrate = {
