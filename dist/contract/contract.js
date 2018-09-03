@@ -9,7 +9,7 @@ const {
   currentValidUntilBlock,
   deployContract,
   pollingReceipt,
-  storeAbi,
+  storeAbiCheck,
   fetchedChainId,
 } = require('../utils/nervosutils')
 
@@ -143,15 +143,23 @@ var contract = (function(module) {
 
         return C.detectNetwork().then(function() {
           return new Promise(function(accept, reject) {
-            var callback = function(error, result) {
-              if (error != null) {
-                reject(error)
-              } else {
-                accept(result)
-              }
-            }
-            args.push(tx_params, callback)
+            // var callback = function(error, result) {
+            //   if (error != null) {
+            //     reject(error)
+            //   } else {
+            //     accept(result)
+            //   }
+            // }
+            args.push(tx_params)
+            log('args', args)
+            log(fn)
             fn.apply(instance.contract, args)
+              .then((res) => {
+                accept(res)
+              })
+              .catch((err) => {
+                reject(err)
+              })
           })
         })
       }
@@ -305,46 +313,56 @@ var contract = (function(module) {
       // contract = contract_class.at(address)
     }
 
-    Object.assign(contract, contract.methods)
-    Object.assign(contract, contract.events)
+    // Object.assign(contract, contract.methods)
+    // Object.assign(contract, contract.events)
 
     this.contract = contract
 
+    // TODO: 我用的是 nervos, 所以不需要考虑 promisify
+    // TODO: 取消需要调用 call 和 send
+    this.methods = contract.methods
+    this.events = contract.events
     // Provision our functions.
-    for (var i = 0; i < this.abi.length; i++) {
-      var item = this.abi[i]
-      if (item.type == 'function') {
-        if (item.constant == true) {
-          this[item.name] = Utils.promisifyFunction(contract[item.name], constructor)
-        } else {
-          this[item.name] = Utils.synchronizeFunction(contract[item.name], this, constructor)
-        }
+    // for (var i = 0; i < this.abi.length; i++) {
+    //   var item = this.abi[i]
+    //   log(i, item.name)
 
-        this[item.name].call = Utils.promisifyFunction(contract[item.name].call, constructor)
-        this[item.name].sendTransaction = Utils.promisifyFunction(contract[item.name].sendTransaction, constructor)
-        this[item.name].request = contract[item.name].request
-        this[item.name].estimateGas = Utils.promisifyFunction(contract[item.name].estimateGas, constructor)
-      }
+    //   // if (item.type == 'function') {
+    //   //   if (item.constant == true) {
+    //   //     this[item.name] = Utils.promisifyFunction(contract[item.name], constructor)
+    //   //   } else {
+    //   //     this[item.name] = Utils.synchronizeFunction(contract[item.name], this, constructor)
+    //   //   }
 
-      if (item.type == 'event') {
-        this[item.name] = contract[item.name]
-      }
+    //   //   this[item.name].call = Utils.promisifyFunction(contract[item.name].call, constructor)
+    //   //   this[item.name].sendTransaction = Utils.promisifyFunction(contract[item.name].sendTransaction, constructor)
+    //   //   this[item.name].request = contract[item.name].request
+    //   //   this[item.name].estimateGas = Utils.promisifyFunction(contract[item.name].estimateGas, constructor)
+    //   // }
+
+    //   // if (item.type == 'event') {
+    //   //   this[item.name] = contract[item.name]
+    //   // }
+    // }
+
+    // this.sendTransaction = Utils.synchronizeFunction(
+    //   function(tx_params, callback) {
+    //     if (typeof tx_params == 'function') {
+    //       callback = tx_params
+    //       tx_params = {}
+    //     }
+
+    //     tx_params.to = self.address
+
+    //     constructor.web3.appchain.sendTransaction.apply(constructor.web3.appchain, [tx_params, callback])
+    //   },
+    //   this,
+    //   constructor
+    // )
+
+    this.sendTransaction = (tx_params) => {
+      return constructor.web3.appchain.sendTransaction.apply(constructor.web3.appchain, [tx_params])
     }
-
-    this.sendTransaction = Utils.synchronizeFunction(
-      function(tx_params, callback) {
-        if (typeof tx_params == 'function') {
-          callback = tx_params
-          tx_params = {}
-        }
-
-        tx_params.to = self.address
-
-        constructor.web3.appchain.sendTransaction.apply(constructor.web3.appchain, [tx_params, callback])
-      },
-      this,
-      constructor
-    )
 
     this.send = function(value) {
       return self.sendTransaction({ value: value })
@@ -449,17 +467,9 @@ var contract = (function(module) {
             // TODO: 这里需要手动加上, 需要修复
             contract._requestManager.provider = self.web3.currentProvider
             tx_params.chainId = self.network_id.split('appchain')[1]
-            currentValidUntilBlock(self.web3)
-              .then((number) => {
-                tx_params.validUntilBlock = number
-              })
-              .then(() => {
-                log('send deploy contract')
-                return deployContract(contract, self.bytecode, args, tx_params)
-              })
+            deployContract(self.web3, contract, self.bytecode, args, tx_params)
               .then((res) => {
                 console.log('transaction hash of deploy contract: ', res.hash)
-                log('deployed and fetching receipt...')
                 return pollingReceipt(self.web3, res.hash)
               })
               .then((res) => {
@@ -468,27 +478,17 @@ var contract = (function(module) {
                 }
                 contract.transactionHash = res.transactionHash
                 contract.address = res.contractAddress
-                return storeAbi(self.web3, contract.address, self.abi, tx_params)
+                contract.options.address = res.contractAddress
               })
-              .then((res) => {
-                return pollingReceipt(self.web3, res.hash)
+              // TODO: abi truffle 已经存了, 所以这里不用存到链上(待定)
+              .then(() => {
+                const success = `${self.contract_name} store abi success`
+                const failure = `${self.contract_name} store abi failure`
+                return storeAbiCheck(self.web3, contract.address, self.abi, tx_params, success, failure)
               })
-              .then((res) => {
-                let err = res.errorMessage
-                if (err !== null) {
-                  throw err
-                }
-                return self.web3.appchain.getAbi(contract.address)
-              })
-              .then((abi) => {
-                if (abi === '0x') {
-                  throw 'store abi failure'
-                } else {
-                  // log('store abi success')
-                  const instance = new self(contract)
-                  // log('instance', instance)
-                  accept(instance)
-                }
+              .then(() => {
+                const instance = new self(contract)
+                accept(instance)
               })
               .catch((err) => {
                 console.error('deploy error :', err)
@@ -590,10 +590,9 @@ var contract = (function(module) {
       return new Promise(function(accept, reject) {
         // Try to detect the network we have artifacts for.
         if (self.network_id) {
-          log(self.network_id)
           // We have a network id and a configuration, let's go with it.
           if (self.networks[self.network_id] != null) {
-            return accept(self.network_id)
+            accept(self.network_id)
           }
         }
         // 将 chain id 作为 network id
@@ -601,7 +600,7 @@ var contract = (function(module) {
           .then((chainId) => {
             const network_id = 'appchain' + chainId.toString()
             self.setNetwork(network_id)
-            return accept()
+            accept(network_id)
           })
           .catch((err) => {
             reject(err)
