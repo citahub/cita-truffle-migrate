@@ -35,9 +35,18 @@ const currentValidUntilBlock = (nervos, blocknumberAdd = 88) => {
   })
 }
 
-const deployContract = (contract, data, arguments, txParams) => {
+const deployContract = (nervos, contract, data, arguments, txParams) => {
   const { privateKey, from, nonce, quota, chainId, version, validUntilBlock } = txParams
   const tx = { privateKey, from, nonce, quota, chainId, version, validUntilBlock }
+  if (tx.validUntilBlock === undefined) {
+    return currentValidUntilBlock(nervos)
+      .then((number) => {
+        tx.validUntilBlock = number
+      })
+      .then(() => {
+        return contract.deploy({ data, arguments }).send(tx)
+      })
+  }
   return contract.deploy({ data, arguments }).send(tx)
 }
 
@@ -59,8 +68,41 @@ const storeAbi = (nervos, contractAddress, abi, txParams) => {
     chainId,
     privateKey,
   }
+  if (tx.validUntilBlock === undefined) {
+    return currentValidUntilBlock(nervos)
+      .then((number) => {
+        tx.validUntilBlock = number
+      })
+      .then(() => {
+        return nervos.appchain.sendTransaction(tx)
+      })
+  }
   // log('storing abi...')
   return nervos.appchain.sendTransaction(tx)
+}
+
+const storeAbiCheck = (nervos, contractAddress, abi, txParams, success, failure) => {
+  return storeAbi(nervos, contractAddress, abi, txParams)
+    .then((res) => {
+      return pollingReceipt(nervos, res.hash)
+    })
+    .then((res) => {
+      let err = res.errorMessage
+      if (err !== null) {
+        throw err
+      }
+      return nervos.appchain.getAbi(contractAddress)
+    })
+    .then((abi) => {
+      if (abi === '0x') {
+        const err = failure || 'store abi failure'
+        console.log(err)
+        throw 'store abi failure'
+      } else {
+        const ok = success || 'store abi success'
+        console.log(ok)
+      }
+    })
 }
 
 const pollingReceipt = (nervos, hash) => {
@@ -92,11 +134,9 @@ const pollingReceipt = (nervos, hash) => {
 }
 
 const fetchedChainId = (nervos) => {
-  return nervos.appchain
-    .getMetaData()
-    .then((res) => {
-      return res.chainId
-    })
+  return nervos.appchain.getMetaData().then((res) => {
+    return res.chainId
+  })
 }
 
 module.exports = {
@@ -105,6 +145,7 @@ module.exports = {
   currentValidUntilBlock,
   deployContract,
   storeAbi,
+  storeAbiCheck,
   pollingReceipt,
   fetchedChainId,
 }
