@@ -18,6 +18,16 @@ const fromUtf8 = function(str) {
   return hex
 }
 
+const addressFromPrivateKey = (privateKey, nervosInstance = null) => {
+  let nervos = nervosInstance
+  if (nervos === null) {
+    nervos = Nervos()
+  }
+  const account = nervos.appchain.accounts.privateKeyToAccount(privateKey)
+  const address = account.address.toLocaleLowerCase().slice(2)
+  return address
+}
+
 const currentValidUntilBlock = (nervos, blocknumberAdd = 88) => {
   return nervos.appchain.getBlockNumber().then((number) => {
     const num = Number(number) + Number(blocknumberAdd)
@@ -82,6 +92,7 @@ const pollingReceipt = (nervos, hash) => {
 
 module.exports = {
   fromUtf8,
+  addressFromPrivateKey,
   currentValidUntilBlock,
   deployContract,
   storeAbi,
