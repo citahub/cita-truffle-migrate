@@ -74,6 +74,7 @@ const pollingReceipt = (nervos, hash) => {
           remain--
           // log(remain)
           if (receipt) {
+            log('pollingReceipt done')
             resolve(receipt)
           } else if (remain < 0) {
             reject('fetch transaction receipt overtime')
@@ -90,6 +91,14 @@ const pollingReceipt = (nervos, hash) => {
   return p
 }
 
+const fetchedChainId = (nervos) => {
+  return nervos.appchain
+    .getMetaData()
+    .then((res) => {
+      return res.chainId
+    })
+}
+
 module.exports = {
   fromUtf8,
   addressFromPrivateKey,
@@ -97,4 +106,5 @@ module.exports = {
   deployContract,
   storeAbi,
   pollingReceipt,
+  fetchedChainId,
 }
