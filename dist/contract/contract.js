@@ -5,7 +5,13 @@ var Nervos = require('@nervos/chain').default
 var StatusError = require('./statuserror.js')
 // var { fromUtf8, pollingReceipt } = require('./utils')
 var log = require('../utils/log').title('contract/contract')
-const { currentValidUntilBlock, deployContract, pollingReceipt, storeAbi } = require('../utils/nervosutils')
+const {
+  currentValidUntilBlock,
+  deployContract,
+  pollingReceipt,
+  storeAbi,
+  fetchedChainId,
+} = require('../utils/nervosutils')
 
 // For browserified version. If browserify gave us an empty version,
 // look for the one provided by the user.
@@ -19,7 +25,6 @@ const { currentValidUntilBlock, deployContract, pollingReceipt, storeAbi } = req
 var contract = (function(module) {
   // Planned for future features, logging, etc.
   function Provider(provider) {
-    log('Provider', provider)
     this.provider = provider
   }
 
@@ -355,10 +360,9 @@ var contract = (function(module) {
       if (!provider) {
         throw new Error('Invalid provider passed to setProvider(); provider is ' + provider)
       }
-      // var wrapped = new Provider(provider)
-      // this.web3.setProvider(wrapped)
-      this.web3.setProvider(provider)
-      this.currentProvider = this.web3.currentProvider
+      var wrapped = new Provider(provider)
+      this.web3.setProvider(wrapped)
+      this.currentProvider = provider
     },
 
     new: function() {
@@ -581,11 +585,9 @@ var contract = (function(module) {
     },
 
     detectNetwork: function() {
-      log('detectNetwork')
       var self = this
 
       return new Promise(function(accept, reject) {
-        log('detectNetwork new promise')
         // Try to detect the network we have artifacts for.
         if (self.network_id) {
           log(self.network_id)
@@ -595,15 +597,9 @@ var contract = (function(module) {
           }
         }
         // 将 chain id 作为 network id
-        self.web3.appchain
-          .getMetaData()
-          .then((res) => {
-            // log('metadata', res)
-            const network_id = 'appchain' + res.chainId.toString()
-            if (self.hasNetwork(network_id)) {
-              self.setNetwork(network_id)
-              return accept()
-            }
+        fetchedChainId(self.web3)
+          .then((chainId) => {
+            const network_id = 'appchain' + chainId.toString()
             self.setNetwork(network_id)
             return accept()
           })
