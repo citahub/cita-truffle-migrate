@@ -8,7 +8,7 @@ var async = require('async')
 var Web3 = require('@nervos/chain').default
 var expect = require('truffle-expect')
 var Deployer = require('truffle-deployer')
-var log = require('../utils').title('migrate/index')
+var log = require('../utils/log').title('migrate/index')
 
 function Migration(file) {
   this.file = path.resolve(file)

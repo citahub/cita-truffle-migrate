@@ -3,8 +3,10 @@ var ethJSABI = require('ethjs-abi')
 var Web3 = require('web3')
 var Nervos = require('@nervos/chain').default
 var StatusError = require('./statuserror.js')
-var { fromUtf8, pollingReceipt } = require('./utils')
-var log = require('../utils').title('contract/utils')
+// var { fromUtf8, pollingReceipt } = require('./utils')
+var log = require('../utils/log').title('contract/contract')
+const { currentValidUntilBlock, deployContract, pollingReceipt, storeAbi } = require('../utils/nervosutils')
+log('log.out', log.out)
 
 // For browserified version. If browserify gave us an empty version,
 // look for the one provided by the user.
@@ -18,6 +20,7 @@ var log = require('../utils').title('contract/utils')
 var contract = (function(module) {
   // Planned for future features, logging, etc.
   function Provider(provider) {
+    log('Provider', provider)
     this.provider = provider
   }
 
@@ -353,9 +356,10 @@ var contract = (function(module) {
       if (!provider) {
         throw new Error('Invalid provider passed to setProvider(); provider is ' + provider)
       }
-      var wrapped = new Provider(provider)
-      this.web3.setProvider(wrapped)
-      this.currentProvider = provider
+      // var wrapped = new Provider(provider)
+      // this.web3.setProvider(wrapped)
+      this.web3.setProvider(provider)
+      this.currentProvider = this.web3.currentProvider
     },
 
     new: function() {
@@ -406,7 +410,6 @@ var contract = (function(module) {
         })
         .then(function() {
           return new Promise(function(accept, reject) {
-            // var contract_class = self.web3.eth.contract(self.abi)
             var tx_params = {}
             var last_arg = args[args.length - 1]
 
@@ -430,7 +433,8 @@ var contract = (function(module) {
               )
             }
 
-            // console.log('tx_params', tx_params)
+            // log('args', args)
+            // log('tx_params', tx_params)
 
             tx_params = Utils.merge(self.class_defaults, tx_params)
 
@@ -441,23 +445,17 @@ var contract = (function(module) {
             var contract = new self.web3.appchain.Contract(self.abi)
             // TODO: 这里需要手动加上, 需要修复
             contract._requestManager.provider = self.web3.currentProvider
-            const chainId = self.network_id.split('appchain')[1]
-            Promise.resolve()
-              .then(() => {
-                if (tx_params.validUntilBlock === -1) {
-                  log('fetching block number...')
-                  return self.web3.appchain.getBlockNumber().then((res) => {
-                    const num = Number(res)
-                    tx_params.validUntilBlock = num + 88
-                  })
-                }
+            tx_params.chainId = self.network_id.split('appchain')[1]
+            currentValidUntilBlock(self.web3)
+              .then((number) => {
+                tx_params.validUntilBlock = number
               })
               .then(() => {
-                const { privateKey, from, nonce, quota, version, validUntilBlock } = tx_params
-                const tx = { privateKey, from, nonce, quota, chainId, version, validUntilBlock }
-                return contract.deploy({ data: self.bytecode, arguments: args }).send(tx)
+                log('send deploy contract')
+                return deployContract(contract, self.bytecode, args, tx_params)
               })
               .then((res) => {
+                console.log('transaction hash of deploy contract: ', res.hash)
                 log('deployed and fetching receipt...')
                 return pollingReceipt(self.web3, res.hash)
               })
@@ -467,25 +465,7 @@ var contract = (function(module) {
                 }
                 contract.transactionHash = res.transactionHash
                 contract.address = res.contractAddress
-                let abibytes = fromUtf8(JSON.stringify(self.abi))
-                // const address = res.contractAddress
-                const data = contract.address + abibytes
-                const { validUntilBlock, nonce, version, quota, privateKey, from } = tx_params
-                // 存 abi 的固定地址
-                const to = 'ffffffffffffffffffffffffffffffffff010001'
-                const tx = {
-                  from,
-                  to,
-                  quota,
-                  version,
-                  nonce,
-                  data,
-                  validUntilBlock,
-                  chainId,
-                  privateKey,
-                }
-                // log('storing abi...')
-                return self.web3.appchain.sendTransaction(tx)
+                return storeAbi(self.web3, contract.address, self.abi, tx_params)
               })
               .then((res) => {
                 return pollingReceipt(self.web3, res.hash)
@@ -502,11 +482,13 @@ var contract = (function(module) {
                   throw 'store abi failure'
                 } else {
                   // log('store abi success')
-                  accept(new self(contract))
+                  const instance = new self(contract)
+                  // log('instance', instance)
+                  accept(instance)
                 }
               })
               .catch((err) => {
-                console.error('ERROR:', err)
+                console.error('deploy error :', err)
                 reject(err)
               })
           })
@@ -600,9 +582,11 @@ var contract = (function(module) {
     },
 
     detectNetwork: function() {
+      log('detectNetwork')
       var self = this
 
       return new Promise(function(accept, reject) {
+        log('detectNetwork new promise')
         // Try to detect the network we have artifacts for.
         if (self.network_id) {
           log(self.network_id)
@@ -612,10 +596,10 @@ var contract = (function(module) {
           }
         }
         // 将 chain id 作为 network id
-        log('get chain id')
         self.web3.appchain
           .getMetaData()
           .then((res) => {
+            // log('metadata', res)
             const network_id = 'appchain' + res.chainId.toString()
             if (self.hasNetwork(network_id)) {
               self.setNetwork(network_id)
