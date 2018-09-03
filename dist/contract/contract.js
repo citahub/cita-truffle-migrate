@@ -6,7 +6,6 @@ var StatusError = require('./statuserror.js')
 // var { fromUtf8, pollingReceipt } = require('./utils')
 var log = require('../utils/log').title('contract/contract')
 const { currentValidUntilBlock, deployContract, pollingReceipt, storeAbi } = require('../utils/nervosutils')
-log('log.out', log.out)
 
 // For browserified version. If browserify gave us an empty version,
 // look for the one provided by the user.
