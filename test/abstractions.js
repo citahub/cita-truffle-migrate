@@ -104,4 +104,21 @@ describe('Abstractions', function() {
       .then(done)
       .catch(done)
   })
+
+  it("shouldn't synchronize constant functions", function(done) {
+    var example
+    const txParams = {
+      ...config.txParams,
+    }
+    Example.new(5, txParams)
+      .then((instance) => {
+        example = instance
+        return example.methods.getValue().call()
+      })
+      .then((value) => {
+        assert.equal(value.valueOf(), 5, 'Value should have been retrieved without explicitly calling .call()')
+      })
+      .then(done)
+      .catch(done)
+  })
 })
