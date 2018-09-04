@@ -69,4 +69,39 @@ describe('Abstractions', function() {
       assert(example.transactionHash, 'transactionHash should be non-empty')
     })
   })
+
+  it('should get and set values via methods and get values via .call', function(done) {
+    const txParams = {
+      ...config.txParams,
+    }
+    var example
+    this.timeout(20000)
+    Example.new(1, txParams)
+      .then((instance) => {
+        example = instance
+        txParams.from = example.address
+        return example.methods.value().call()
+      })
+      .then((value) => {
+        assert.equal(value.valueOf(), 1, 'Starting value should be 1')
+      })
+      .then(() => {
+        return currentValidUntilBlock(web3)
+      })
+      .then((validUntilBlock) => {
+        txParams.validUntilBlock = validUntilBlock
+        return example.methods.setValue(5).send(txParams)
+      })
+      .then((res) => {
+        return web3.listeners.listenToTransactionReceipt(res.hash)
+      })
+      .then((res) => {
+        return example.methods.value().call()
+      })
+      .then((value) => {
+        assert.equal(value.valueOf(), 5, 'Ending value should be five')
+      })
+      .then(done)
+      .catch(done)
+  })
 })
