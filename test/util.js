@@ -5,7 +5,6 @@ const config = require('./config')
 const { addressFromPrivateKey } = require('../dist/utils/nervosutils')
 
 const setUpProvider = function(instance, options) {
-  log('setUpProvider')
   // options = options || {}
   // Object.assign(options, { logger: { log } })
 
