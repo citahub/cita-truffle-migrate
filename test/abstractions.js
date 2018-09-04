@@ -121,4 +121,45 @@ describe('Abstractions', function() {
       .then(done)
       .catch(done)
   })
+
+    it('should allow BigNumbers as input parameters, and not confuse them as transaction objects', function(done) {
+      // BigNumber passed on new()
+      var example = null
+      const txParams = {
+        ...config.txParams,
+      }
+      Example.new(web3.utils.toBN(30), txParams)
+        .then((instance) => {
+          example = instance
+          txParams.from = example.address
+          return example.methods.value().call()
+        })
+        .then((value) => {
+          assert.equal(value.valueOf(), 30, 'Starting value should be 30')
+        })
+        .then(() => {
+          return currentValidUntilBlock(web3)
+        })
+        .then((validUntilBlock) => {
+          txParams.validUntilBlock = validUntilBlock
+          // BigNumber passed in a transaction.
+          return example.methods.setValue(web3.utils.toBN(25)).send(txParams)
+        })
+        .then((res) => {
+          return web3.listeners.listenToTransactionReceipt(res.hash)
+        })
+        .then((res) => {
+          return example.methods.value().call()
+        })
+        .then((value) => {
+          assert.equal(value.valueOf(), 25, 'Ending value should be twenty-five')
+          // BigNumber passed in a call.
+          return example.methods.parrot(web3.utils.toBN(865)).call()
+        })
+        .then((parrot_value) => {
+          assert.equal(parrot_value.valueOf(), 865, 'Parrotted value should equal 865')
+        })
+        .then(done)
+        .catch(done)
+    })
 })
