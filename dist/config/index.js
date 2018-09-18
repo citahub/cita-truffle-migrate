@@ -20,9 +20,9 @@ function Config(truffle_directory, working_directory, network) {
     from: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     // to: 'ffffffffffffffffffffffffffffffffff010001',
     nonce: 99,
-    quota: 999999,
+    quota: 9999999,
     version: 0,
-    validUntilBlock: -1,
+    validUntilBlock: undefined,
     // value: '0',
     // chainId: 1,
   }
