@@ -395,7 +395,6 @@ var contract = (function(module) {
       if (!this.bytecode) {
         throw new Error(this._json.contractName + " error: contract binary not set. Can't deploy new instance.")
       }
-
       return self
         .detectNetwork()
         .then(function(network_id) {
@@ -462,11 +461,14 @@ var contract = (function(module) {
             if (tx_params.data == null) {
               tx_params.data = self.binary
             }
+            log('tx_params.version', tx_params.version)
             // deploy
             var contract = new self.web3.appchain.Contract(self.abi)
             // TODO: 这里需要手动加上, 需要修复
             contract._requestManager.provider = self.web3.currentProvider
             tx_params.chainId = self.network_id.split('appchain')[1]
+            log('start deploy')
+            
             deployContract(self.web3, contract, self.bytecode, args, tx_params)
               .then((res) => {
                 console.log('transaction hash of deploy contract: ', res.hash)
@@ -474,18 +476,18 @@ var contract = (function(module) {
               })
               .then((res) => {
                 if (res.errorMessage !== null) {
-                  throw res.errorMessage
+                  throw new Error(`deployContract error:\n ${res.errorMessage}`)
                 }
                 contract.transactionHash = res.transactionHash
                 contract.address = res.contractAddress
                 contract.options.address = res.contractAddress
               })
               // TODO: abi truffle 已经存了, 所以这里不用存到链上(待定)
-              .then(() => {
-                const success = `${self.contract_name} store abi success`
-                const failure = `${self.contract_name} store abi failure`
-                return storeAbiCheck(self.web3, contract.address, self.abi, tx_params, success, failure)
-              })
+              // .then(() => {
+              //   const success = `${self.contract_name} store abi success`
+              //   const failure = `${self.contract_name} store abi failure`
+              //   return storeAbiCheck(self.web3, contract.address, self.abi, tx_params, success, failure)
+              // })
               .then(() => {
                 const instance = new self(contract)
                 accept(instance)
@@ -907,7 +909,7 @@ var contract = (function(module) {
 
         signature += ')'
 
-        var topic = web3.sha3(signature)
+        var topic = web3.utils.sha3(signature)
 
         events[topic] = item
       })

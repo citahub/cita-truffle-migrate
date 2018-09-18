@@ -29,13 +29,28 @@ const addressFromPrivateKey = (privateKey, nervosInstance = null) => {
 }
 
 const currentValidUntilBlock = (nervos, blocknumberAdd = 88) => {
-  return nervos.appchain.getBlockNumber().then((number) => {
-    const num = Number(number) + Number(blocknumberAdd)
-    return num
-  })
+  log('currentValidUntilBlock')
+  return nervos.appchain
+    .getBlockNumber()
+    .then((number) => {
+      const num = Number(number) + Number(blocknumberAdd)
+      return num
+    })
+    .catch((err) => {
+      throw new Error('currentValidUntilBlock failed\n' + err)
+    })
 }
 
-const deployContract = (nervos, contract, data, arguments, txParams) => {
+const sendDeployContract = (contract, data, arguments, txParams) => {
+  return contract
+    .deploy({ data, arguments })
+    .send(txParams)
+    .catch((err) => {
+      throw new Error('sendDeployContract failed\n' + err)
+    })
+}
+
+const deployContract = (nervos, contract, data, args, txParams) => {
   const { privateKey, from, nonce, quota, chainId, version, validUntilBlock } = txParams
   const tx = { privateKey, from, nonce, quota, chainId, version, validUntilBlock }
   if (tx.validUntilBlock === undefined) {
@@ -44,10 +59,11 @@ const deployContract = (nervos, contract, data, arguments, txParams) => {
         tx.validUntilBlock = number
       })
       .then(() => {
-        return contract.deploy({ data, arguments }).send(tx)
+        return sendDeployContract(contract, data, args, tx)
       })
+  } else {
+    return sendDeployContract(contract, data, args, tx)
   }
-  return contract.deploy({ data, arguments }).send(tx)
 }
 
 const storeAbi = (nervos, contractAddress, abi, txParams) => {
