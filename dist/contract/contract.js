@@ -106,115 +106,20 @@ const setProvider = function(provider) {
   this.currentProvider = provider
 }
 
-const newContract = function() {
-  var self = this
+const newContract = function(...args) {
+  const self = this
+  checkCurrentProvider(self)
+  checkBytecode(self)
 
-  if (this.currentProvider == null) {
-    throw new Error(this.contractName + ' error: Please call setProvider() first before calling new().')
-  }
-
-  var args = Array.prototype.slice.call(arguments)
-
-  if (!this.bytecode) {
-    throw new Error(this._json.contractName + " error: contract binary not set. Can't deploy new instance.")
-  }
   return self
     .detectNetwork()
     .then(function(network_id) {
-      // After the network is set, check to make sure everything's ship shape.
-      var regex = /__[^_]+_+/g
-      var unlinked_libraries = self.binary.match(regex)
-
-      if (unlinked_libraries != null) {
-        unlinked_libraries = unlinked_libraries
-          .map(function(name) {
-            // Remove underscores
-            return name.replace(/_/g, '')
-          })
-          .sort()
-          .filter(function(name, index, arr) {
-            // Remove duplicates
-            if (index + 1 >= arr.length) {
-              return true
-            }
-
-            return name != arr[index + 1]
-          })
-          .join(', ')
-
-        throw new Error(
-          self.contractName +
-            ' contains unresolved libraries. You must deploy and link the following libraries before you can deploy a new version of ' +
-            self._json.contractName +
-            ': ' +
-            unlinked_libraries
-        )
-      }
+      // After the network is set,
+      // check to make sure everything's ship shape.
+      checkLibraries(self)
     })
     .then(function() {
-      return new Promise(function(accept, reject) {
-        var tx_params = {}
-        var last_arg = args[args.length - 1]
-
-        // It's only tx_params if it's an object and not a BigNumber.
-        if (Utils.is_object(last_arg) && !Utils.is_big_number(last_arg)) {
-          tx_params = args.pop()
-        }
-
-        // Validate constructor args
-        var constructor = self.abi.filter(function(item) {
-          return item.type === 'constructor'
-        })
-
-        if (constructor.length && constructor[0].inputs.length !== args.length) {
-          throw new Error(
-            self.contractName +
-              ' contract constructor expected ' +
-              constructor[0].inputs.length +
-              ' arguments, received ' +
-              args.length
-          )
-        }
-
-        tx_params = Utils.merge(self.class_defaults, tx_params)
-
-        if (tx_params.data == null) {
-          tx_params.data = self.binary
-        }
-        // deploy
-        var contract = new self.web3.appchain.Contract(self.abi)
-        // TODO: 这里需要手动加上, 需要修复
-        contract._requestManager.provider = self.web3.currentProvider
-        tx_params.chainId = self.network_id.split('appchain')[1]
-
-        deployContract(self.web3, contract, self.bytecode, args, tx_params)
-          .then((res) => {
-            console.log('transaction hash of deploy contract: ', res.hash)
-            return pollingReceipt(self.web3, res.hash)
-          })
-          .then((res) => {
-            if (res.errorMessage !== null) {
-              throw new Error(`deployContract error:\n ${res.errorMessage}`)
-            }
-            contract.transactionHash = res.transactionHash
-            contract.address = res.contractAddress
-            contract.options.address = res.contractAddress
-          })
-          // TODO: abi truffle 已经存了, 所以这里不用存到链上(待定)
-          // .then(() => {
-          //   const success = `${self.contract_name} store abi success`
-          //   const failure = `${self.contract_name} store abi failure`
-          //   return storeAbiCheck(self.web3, contract.address, self.abi, tx_params, success, failure)
-          // })
-          .then(() => {
-            const instance = new self(contract)
-            accept(instance)
-          })
-          .catch((err) => {
-            console.error('deploy error :', err)
-            reject(err)
-          })
-      })
+      return deploy(self, args)
     })
 }
 
@@ -350,7 +255,6 @@ const link = function(name, address) {
     }
 
     this.link(contract.contractName, contract.address)
-    log('typeof name == function', 'name:', contract.contractName, 'address', contract.address)
 
     // Merge events so this contract knows about library's events
     Object.keys(contract.events).forEach(function(topic) {
@@ -457,6 +361,127 @@ const addProp = function(key, fn) {
 
 const toJSON = function() {
   return this._json
+}
+
+const formatLibraries = function(unlinkedLibraries) {
+  const unlinked = unlinkedLibraries
+    .map(function(name) {
+      // Remove underscores
+      return name.replace(/_/g, '')
+    })
+    .sort()
+    .filter(function(name, index, arr) {
+      // Remove duplicates
+      if (index + 1 >= arr.length) {
+        return true
+      }
+      return name != arr[index + 1]
+    })
+    .join(', ')
+  return unlinked
+}
+
+const findUnlinkedLibraries = function(contract, unlinkedLibraries) {
+  const unlinked = formatLibraries(unlinkedLibraries)
+  throw new Error(
+    self.contractName +
+      ' contains unresolved libraries. You must deploy and link the following libraries before you can deploy a new version of ' +
+      self._json.contractName +
+      ': ' +
+      unlinked
+  )
+}
+
+const checkLibraries = function(contract) {
+  var regex = /__[^_]+_+/g
+  var unlinkedLibraries = contract.binary.match(regex)
+  if (unlinkedLibraries != null) {
+    findUnlinkedLibraries(contract, unlinkedLibraries)
+  }
+}
+
+const checkCurrentProvider = function(contract) {
+  if (contract.currentProvider == null) {
+    throw new Error(contract.contractName + ' error: Please call setProvider() first before calling new().')
+  }
+}
+
+const checkBytecode = function(contract) {
+  if (!contract.bytecode) {
+    throw new Error(contract._json.contractName + " error: contract binary not set. Can't deploy new instance.")
+  }
+}
+
+const parsedDeployContractParams = function(contract, args) {
+  var tx_params = {}
+  var last_arg = args[args.length - 1]
+
+  // It's only tx_params if it's an object and not a BigNumber.
+  if (Utils.is_object(last_arg) && !Utils.is_big_number(last_arg)) {
+    tx_params = args.pop()
+  }
+
+  // Validate constructor args
+  var constructor = contract.abi.filter(function(item) {
+    return item.type === 'constructor'
+  })
+
+  if (constructor.length && constructor[0].inputs.length !== args.length) {
+    throw new Error(
+      contract.contractName +
+        ' contract constructor expected ' +
+        constructor[0].inputs.length +
+        ' arguments, received ' +
+        args.length
+    )
+  }
+
+  tx_params = Utils.merge(contract.class_defaults, tx_params)
+
+  if (tx_params.data == null) {
+    tx_params.data = contract.binary
+  }
+  tx_params.chainId = contract.network_id.split('appchain')[1]
+
+  return { tx_params, args }
+}
+
+const deploy = function(TruffleContract, inputArgs) {
+  const self = TruffleContract
+  let { tx_params, args } = parsedDeployContractParams(self, inputArgs)
+  var contract = new self.web3.appchain.Contract(self.abi)
+  // TODO: 这里需要手动加上, 需要修复
+  contract._requestManager.provider = self.web3.currentProvider
+
+  return (
+    deployContract(self.web3, contract, self.bytecode, args, tx_params)
+      .then((res) => {
+        console.log('transaction hash of deploy contract: ', res.hash)
+        return pollingReceipt(self.web3, res.hash)
+      })
+      .then((res) => {
+        if (res.errorMessage !== null) {
+          throw new Error(`deployContract error:\n ${res.errorMessage}`)
+        }
+        contract.transactionHash = res.transactionHash
+        contract.address = res.contractAddress
+        contract.options.address = res.contractAddress
+      })
+      // TODO: abi truffle 已经存了, 所以这里不用存到链上(待定)
+      // .then(() => {
+      //   const success = `${self.contract_name} store abi success`
+      //   const failure = `${self.contract_name} store abi failure`
+      //   return storeAbiCheck(self.web3, contract.address, self.abi, tx_params, success, failure)
+      // })
+      .then(() => {
+        const instance = new self(contract)
+        return instance
+      })
+      .catch((err) => {
+        console.error('deploy error :', err)
+        return err
+      })
+  )
 }
 
 Contract._static_methods = {

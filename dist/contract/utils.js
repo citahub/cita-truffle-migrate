@@ -238,7 +238,7 @@ var Utils = {
       })
     })
   },
-  addClassMethodsAndProperties: function (Class) {
+  addClassMethodsAndProperties: function(Class) {
     const cls = Class
     // Add our static methods
     Object.keys(cls._static_methods).forEach(function(key) {
