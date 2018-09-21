@@ -43,8 +43,6 @@ const Contract = function(contract) {
   this.address = contract.address
   this.transactionHash = contract.transactionHash
 
-  log(contract)
-  
   this.sendTransaction = (tx_params) => {
     return constructor.web3.appchain.sendTransaction.apply(constructor.web3.appchain, [tx_params])
   }
@@ -220,7 +218,6 @@ const link = function(name, address) {
     })
     return
   } else if (typeof name == 'object') {
-    log('typeof name == object', 'name:', name, 'address', address)
     var obj = name
     Object.keys(obj).forEach(function(name) {
       var a = obj[name]

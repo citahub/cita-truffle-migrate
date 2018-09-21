@@ -13,7 +13,9 @@ var solc = require('solc')
 var Schema = require('truffle-contract-schema')
 var Provider = require('truffle-provider')
 const config = require('./config')
-const { fetchedChainId } = require('../dist/utils/nervosutils')
+const { fetchedChainId, addressFromPrivateKey } = require('../dist/utils/nervosutils')
+var log = require('../dist/utils/log').title('test/linkings')
+
 // Clean up after solidity. Only remove solidity's listener,
 // which happens to be the first.
 process.removeListener('uncaughtException', process.listeners('uncaughtException')[0] || function() {})
@@ -24,8 +26,7 @@ var log = {
 
 describe('Library linking', function() {
   var LibraryExample
-  // var provider = TestRPC.provider({logger:log});
-  var provider = Provider.create(config)
+  var provider = Provider.create(config.options)
   var network_id
   var web3 = Web3(provider)
 
@@ -36,11 +37,6 @@ describe('Library linking', function() {
         done()
       })
       .catch(done)
-    // web3.version.getNetwork(function(err, id) {
-    //   if (err) return done(err)
-    //   network_id = id
-    //   done()
-    // })
   })
 
   before(function() {
@@ -96,3 +92,112 @@ describe('Library linking', function() {
   })
 })
 
+describe('Library linking with contract objects', function() {
+  this.timeout(20000)
+  var ExampleLibrary
+  var ExampleLibraryConsumer
+  var exampleConsumer
+  var accounts
+  var provider = Provider.create(config.options)
+  var web3 = Web3(provider)
+
+  before(function(done) {
+    fetchedChainId(web3)
+      .then((chain_id) => {
+        network_id = chain_id
+        done()
+      })
+      .catch(done)
+  })
+
+  before(function() {
+    this.timeout(10000)
+
+    var sources = {
+      'ExampleLibrary.sol': fs.readFileSync('./test/ExampleLibrary.sol', { encoding: 'utf8' }),
+      'ExampleLibraryConsumer.sol': fs.readFileSync('./test/ExampleLibraryConsumer.sol', { encoding: 'utf8' }),
+    }
+
+    // Compile first
+    var result = solc.compile({ sources: sources }, 1)
+
+    var library, libraryContractName
+    if (result.contracts['ExampleLibrary']) {
+      libraryContractName = 'ExampleLibrary'
+    } else {
+      libraryContractName = 'ExampleLibrary.sol:ExampleLibrary'
+    }
+    library = result.contracts[libraryContractName]
+    library.contractName = libraryContractName
+    ExampleLibrary = contract(library)
+    ExampleLibrary.setProvider(provider)
+
+    var consumer, consumerContractName
+    if (result.contracts['ExampleLibraryConsumer']) {
+      consumerContractName = 'ExampleLibraryConsumer'
+    } else {
+      consumerContractName = 'ExampleLibraryConsumer.sol:ExampleLibraryConsumer'
+    }
+    consumer = result.contracts[consumerContractName]
+    consumer.contractName = consumerContractName
+    ExampleLibraryConsumer = contract(consumer)
+    ExampleLibraryConsumer.setProvider(provider)
+  })
+
+  before(function(done) {
+    const address = addressFromPrivateKey(config.privateKey, web3)
+    const accounts = [address]
+    ExampleLibrary.defaults({
+      from: accounts[0],
+    })
+
+    ExampleLibraryConsumer.defaults({
+      from: accounts[0],
+    })
+
+    ExampleLibrary.setNetwork(network_id)
+    ExampleLibraryConsumer.setNetwork(network_id)
+    done()
+  })
+
+  before('deploy library', function(done) {
+    const txParams = {
+      ...config.txParams,
+    }
+    ExampleLibrary.new(txParams)
+      .then(function(instance) {
+        ExampleLibrary.address = instance.address
+      })
+      .then(done)
+      .catch(done)
+  })
+
+  after(function(done) {
+    temp.cleanupSync()
+    done()
+  })
+
+  // it("should consume library's events(methods) when linked", function(done) {
+  //   const txParams = {
+  //     ...config.txParams,
+  //   }
+  //   this.timeout(20000)
+  //   ExampleLibraryConsumer.link(ExampleLibrary)
+  //   assert.equal(Object.keys(ExampleLibraryConsumer.events || {}).length, 1)
+  //   ExampleLibraryConsumer.new(txParams)
+  //     .then(function(consumer) {
+  //       return consumer.methods.triggerLibraryEvent.call()
+  //     })
+  //     .then(function(result) {
+  //       log('result\n', result)
+  //       assert.equal(result.logs.length, 1)
+  //       var log0 = result.logs[0]
+  //       assert.equal(log0.event, 'LibraryEvent')
+  //     })
+  //     .then(done)
+  //     .catch((res) => {
+  //       log('ExampleLibraryConsumer.new Error:\n', res)
+  //       done(res)
+  //     })
+  // })
+})
