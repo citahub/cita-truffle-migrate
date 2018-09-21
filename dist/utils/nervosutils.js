@@ -29,7 +29,7 @@ const addressFromPrivateKey = (privateKey, nervosInstance = null) => {
 }
 
 const currentValidUntilBlock = (nervos, blocknumberAdd = 88) => {
-  log('currentValidUntilBlock')
+  // log('currentValidUntilBlock')
   return nervos.appchain
     .getBlockNumber()
     .then((number) => {
@@ -132,7 +132,7 @@ const pollingReceipt = (nervos, hash) => {
           remain--
           // log(remain)
           if (receipt) {
-            log('pollingReceipt done')
+            // log('pollingReceipt done')
             resolve(receipt)
           } else if (remain < 0) {
             reject('fetch transaction receipt overtime')
