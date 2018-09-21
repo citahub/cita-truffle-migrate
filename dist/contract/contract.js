@@ -453,21 +453,17 @@ var contract = (function(module) {
               )
             }
 
-            // log('args', args)
-            // log('tx_params', tx_params)
 
             tx_params = Utils.merge(self.class_defaults, tx_params)
 
             if (tx_params.data == null) {
               tx_params.data = self.binary
             }
-            log('tx_params.version', tx_params.version)
             // deploy
             var contract = new self.web3.appchain.Contract(self.abi)
             // TODO: 这里需要手动加上, 需要修复
             contract._requestManager.provider = self.web3.currentProvider
             tx_params.chainId = self.network_id.split('appchain')[1]
-            log('start deploy')
             
             deployContract(self.web3, contract, self.bytecode, args, tx_params)
               .then((res) => {
