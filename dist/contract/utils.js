@@ -1,6 +1,8 @@
 var Web3 = require('web3')
 var ethJSABI = require('ethjs-abi')
 var StatusError = require('./statuserror.js')
+var log = require('../utils/log').title('contract/utils')
+
 
 var BigNumber = new Web3().toBigNumber(0).constructor
 
@@ -256,10 +258,10 @@ var Utils = {
     Object.keys(links).forEach(function(library_name) {
       var library_address = links[library_name]
       var regex = new RegExp('__' + library_name + '_+', 'g')
-
+      
       bytecode = bytecode.replace(regex, library_address.replace('0x', ''))
     })
-
+    
     return bytecode
   },
 }

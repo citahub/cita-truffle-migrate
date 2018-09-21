@@ -37,64 +37,22 @@ const Contract = function(contract) {
     // contract = contract_class.at(address)
   }
 
-  // Object.assign(contract, contract.methods)
-  // Object.assign(contract, contract.events)
-
   this.contract = contract
-
-  // TODO: 我用的是 nervos, 所以不需要考虑 promisify
-  // TODO: 取消需要调用 call 和 send
   this.methods = contract.methods
   this.events = contract.events
-  // Provision our functions.
-  // for (var i = 0; i < this.abi.length; i++) {
-  //   var item = this.abi[i]
-  //   log(i, item.name)
+  this.address = contract.address
+  this.transactionHash = contract.transactionHash
 
-  //   // if (item.type == 'function') {
-  //   //   if (item.constant == true) {
-  //   //     this[item.name] = Utils.promisifyFunction(contract[item.name], constructor)
-  //   //   } else {
-  //   //     this[item.name] = Utils.synchronizeFunction(contract[item.name], this, constructor)
-  //   //   }
-
-  //   //   this[item.name].call = Utils.promisifyFunction(contract[item.name].call, constructor)
-  //   //   this[item.name].sendTransaction = Utils.promisifyFunction(contract[item.name].sendTransaction, constructor)
-  //   //   this[item.name].request = contract[item.name].request
-  //   //   this[item.name].estimateGas = Utils.promisifyFunction(contract[item.name].estimateGas, constructor)
-  //   // }
-
-  //   // if (item.type == 'event') {
-  //   //   this[item.name] = contract[item.name]
-  //   // }
-  // }
-
-  // this.sendTransaction = Utils.synchronizeFunction(
-  //   function(tx_params, callback) {
-  //     if (typeof tx_params == 'function') {
-  //       callback = tx_params
-  //       tx_params = {}
-  //     }
-
-  //     tx_params.to = self.address
-
-  //     constructor.web3.appchain.sendTransaction.apply(constructor.web3.appchain, [tx_params, callback])
-  //   },
-  //   this,
-  //   constructor
-  // )
-
+  log(contract)
+  
   this.sendTransaction = (tx_params) => {
     return constructor.web3.appchain.sendTransaction.apply(constructor.web3.appchain, [tx_params])
   }
-
-  this.send = function(value) {
+  
+  this.send = (value) => {
     return self.sendTransaction({ value: value })
   }
 
-  this.allEvents = contract.allEvents
-  this.address = contract.address
-  this.transactionHash = contract.transactionHash
 }
 
 const setProvider = function(provider) {
@@ -119,7 +77,7 @@ const newContract = function(...args) {
       checkLibraries(self)
     })
     .then(function() {
-      return deploy(self, args)
+      return deployedContract(self, args)
     })
 }
 
@@ -446,7 +404,7 @@ const parsedDeployContractParams = function(contract, args) {
   return { tx_params, args }
 }
 
-const deploy = function(TruffleContract, inputArgs) {
+const deployedContract = function(TruffleContract, inputArgs) {
   const self = TruffleContract
   let { tx_params, args } = parsedDeployContractParams(self, inputArgs)
   var contract = new self.web3.appchain.Contract(self.abi)
@@ -454,7 +412,7 @@ const deploy = function(TruffleContract, inputArgs) {
   contract._requestManager.provider = self.web3.currentProvider
 
   return (
-    deployContract(self.web3, contract, self.bytecode, args, tx_params)
+    deployContract(self.web3, contract, self.binary, args, tx_params)
       .then((res) => {
         console.log('transaction hash of deploy contract: ', res.hash)
         return pollingReceipt(self.web3, res.hash)
@@ -478,8 +436,8 @@ const deploy = function(TruffleContract, inputArgs) {
         return instance
       })
       .catch((err) => {
-        console.error('deploy error :', err)
-        return err
+        console.error('Error in deploy:', err)
+        throw err
       })
   )
 }
