@@ -25,7 +25,7 @@ describe('Abstractions', function() {
     this.timeout(20000)
 
     // Compile first
-    var result = solc.compile(fs.readFileSync('./test/Example.sol', { encoding: 'utf8' }), 1)
+    var result = solc.compile(fs.readFileSync('./test/lib/Example.sol', { encoding: 'utf8' }), 1)
 
     // Clean up after solidity. Only remove solidity's listener,
     // which happens to be the first.
@@ -116,7 +116,7 @@ describe('Abstractions', function() {
         return example.methods.getValue().call()
       })
       .then((value) => {
-        assert.equal(value.valueOf(), 5, 'Value should have been retrieved without explicitly calling .call()')
+        assert.equal(value.valueOf(), 5, 'Value should have been retrieved with explicitly calling .call()')
       })
       .then(done)
       .catch(done)
@@ -128,8 +128,10 @@ describe('Abstractions', function() {
   //   const txParams = {
   //     ...config.txParams,
   //   }
-  //   Example.new(web3.utils.toBN(30), txParams)
+  //   const arg1 = new web3.utils.BN(30)
+  //   Example.new(arg1, txParams)
   //     .then((instance) => {
+  //       log('??')
   //       example = instance
   //       txParams.from = example.address
   //       return example.methods.value().call()
