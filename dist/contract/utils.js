@@ -1,10 +1,11 @@
-var Web3 = require('web3')
+// var Web3 = require('web3')
+var Web3 = require('@nervos/chain').default
 var ethJSABI = require('ethjs-abi')
 var StatusError = require('./statuserror.js')
 var log = require('../utils/log').title('contract/utils')
 
-
-var BigNumber = new Web3().toBigNumber(0).constructor
+// var BigNumber = new Web3().toBigNumber(0).constructor
+const web3 = Web3()
 
 var Utils = {
   is_object: function(val) {
@@ -14,12 +15,13 @@ var Utils = {
     if (typeof val != 'object') return false
 
     // Instanceof won't work because we have multiple versions of Web3.
-    try {
-      new BigNumber(val)
-      return true
-    } catch (e) {
-      return false
-    }
+    return web3.utils.isBigNumber(val) || web3.utils.isBN(val)
+    // try {
+    //   new BigNumber(val)
+    //   return true
+    // } catch (e) {
+    //   return false
+    // }
   },
   decodeLogs: function(C, instance, logs) {
     return logs
@@ -258,10 +260,10 @@ var Utils = {
     Object.keys(links).forEach(function(library_name) {
       var library_address = links[library_name]
       var regex = new RegExp('__' + library_name + '_+', 'g')
-      
+
       bytecode = bytecode.replace(regex, library_address.replace('0x', ''))
     })
-    
+
     return bytecode
   },
 }

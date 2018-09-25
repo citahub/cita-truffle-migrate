@@ -34,7 +34,6 @@ const Contract = function(contract) {
     var address = contract
     var contract = new constructor.web3.appchain.Contract(this.abi, address)
     contract.address = address
-    // contract = contract_class.at(address)
   }
 
   this.contract = contract
@@ -46,11 +45,10 @@ const Contract = function(contract) {
   this.sendTransaction = (tx_params) => {
     return constructor.web3.appchain.sendTransaction.apply(constructor.web3.appchain, [tx_params])
   }
-  
+
   this.send = (value) => {
     return self.sendTransaction({ value: value })
   }
-
 }
 
 const setProvider = function(provider) {
@@ -82,34 +80,14 @@ const newContract = function(...args) {
 const at = function(address) {
   var self = this
 
-  if (address == null || typeof address != 'string' || address.length != 42) {
-    throw new Error('Invalid address passed to ' + this._json.contractName + '.at(): ' + address)
-  }
-
+  checkAddress(self, address)
   var contract = new this(address)
-
-  // Add thennable to allow people opt into new recommended usage.
   contract.then = function(fn) {
-    return self
-      .detectNetwork()
-      .then(function(network_id) {
-        var instance = new self(address)
-
-        return new Promise(function(accept, reject) {
-          self.web3.eth.getCode(address, function(err, code) {
-            if (err) return reject(err)
-
-            if (!code || code.replace('0x', '').replace(/0/g, '') === '') {
-              return reject(
-                new Error('Cannot create instance of ' + self.contractName + '; no code at address ' + address)
-              )
-            }
-
-            accept(instance)
-          })
-        })
-      })
-      .then(fn)
+    return self.detectNetwork().then(() => {
+      return self.web3.appchain.getCode(address)
+    }).then((code) => {
+      checkCode(self, code, address)
+    }).then(fn)
   }
 
   return contract
@@ -336,22 +314,30 @@ const formatLibraries = function(unlinkedLibraries) {
   return unlinked
 }
 
-const findUnlinkedLibraries = function(contract, unlinkedLibraries) {
-  const unlinked = formatLibraries(unlinkedLibraries)
-  throw new Error(
-    self.contractName +
-      ' contains unresolved libraries. You must deploy and link the following libraries before you can deploy a new version of ' +
-      self._json.contractName +
-      ': ' +
-      unlinked
-  )
+const checkAddress = function(contract, address) {
+  if (address == null || typeof address != 'string' || address.length != 42) {
+    throw new Error('Invalid address passed to ' + contract._json.contractName + '.at(): ' + address)
+  }
+}
+
+const checkCode = function(contract, code, address) {
+  if (!code || code.replace('0x', '').replace(/0/g, '') === '') {
+    throw new Error('Cannot create instance of ' + contract.contractName + '; no code at address ' + address)
+  }
 }
 
 const checkLibraries = function(contract) {
   var regex = /__[^_]+_+/g
   var unlinkedLibraries = contract.binary.match(regex)
   if (unlinkedLibraries != null) {
-    findUnlinkedLibraries(contract, unlinkedLibraries)
+    const unlinked = formatLibraries(unlinkedLibraries)
+    throw new Error(
+      contract.contractName +
+      ' contains unresolved libraries. You must deploy and link the following libraries before you can deploy a new version of ' +
+      contract._json.contractName +
+      ': ' +
+      unlinked
+    )
   }
 }
 
@@ -407,7 +393,6 @@ const deployedContract = function(TruffleContract, inputArgs) {
   var contract = new self.web3.appchain.Contract(self.abi)
   // TODO: 这里需要手动加上, 需要修复
   contract._requestManager.provider = self.web3.currentProvider
-
   return (
     deployContract(self.web3, contract, self.binary, args, tx_params)
       .then((res) => {
