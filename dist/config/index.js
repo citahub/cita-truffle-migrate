@@ -232,6 +232,21 @@ function Config(truffle_directory, working_directory, network) {
         )
       },
     },
+    value: {
+      get: function() {
+        try {
+          return self.network_config.value
+        } catch (e) {
+          throw new Error('You must set chainId')
+          // return default_tx_values.value
+        }
+      },
+      set: function(val) {
+        throw new Error(
+          "Don't set config.value directly. Instead, set config.networks and then config.networks[<network name>].value"
+        )
+      },
+    },
     gas: {
       get: function() {
         try {
