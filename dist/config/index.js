@@ -23,7 +23,7 @@ function Config(truffle_directory, working_directory, network) {
     quota: 9999999,
     version: 0,
     validUntilBlock: undefined,
-    // value: '0',
+    value: '0x0',
     // chainId: 1,
   }
 

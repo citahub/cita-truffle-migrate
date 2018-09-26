@@ -51,8 +51,8 @@ const sendDeployContract = (contract, data, contractArguments, txParams) => {
 }
 
 const deployContract = (nervos, contract, data, args, txParams) => {
-  const { privateKey, from, nonce, quota, chainId, version, validUntilBlock } = txParams
-  const tx = { privateKey, from, nonce, quota, chainId, version, validUntilBlock }
+  const { privateKey, from, nonce, quota, chainId, version, validUntilBlock, value } = txParams
+  const tx = { privateKey, from, nonce, quota, chainId, version, validUntilBlock, value }
   if (tx.validUntilBlock === undefined) {
     return currentValidUntilBlock(nervos)
       .then((number) => {
@@ -70,7 +70,7 @@ const storeAbi = (nervos, contractAddress, abi, txParams) => {
   let abibytes = fromUtf8(JSON.stringify(abi))
   // const address = res.contractAddress
   const data = contractAddress + abibytes
-  const { validUntilBlock, chainId, nonce, version, quota, privateKey, from } = txParams
+  const { validUntilBlock, chainId, nonce, version, quota, privateKey, from, value } = txParams
   // 存 abi 的固定地址
   const to = 'ffffffffffffffffffffffffffffffffff010001'
   const tx = {
@@ -83,6 +83,7 @@ const storeAbi = (nervos, contractAddress, abi, txParams) => {
     validUntilBlock,
     chainId,
     privateKey,
+    value, 
   }
   if (tx.validUntilBlock === undefined) {
     return currentValidUntilBlock(nervos)
