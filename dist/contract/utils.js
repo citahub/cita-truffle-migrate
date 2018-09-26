@@ -12,8 +12,6 @@ var Utils = {
     return typeof val == 'object' && !Array.isArray(val)
   },
   is_big_number: function(val) {
-    if (typeof val != 'object') return false
-
     // Instanceof won't work because we have multiple versions of Web3.
     return web3.utils.isBigNumber(val) || web3.utils.isBN(val)
     // try {

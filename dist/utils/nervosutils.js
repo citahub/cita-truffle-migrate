@@ -41,9 +41,9 @@ const currentValidUntilBlock = (nervos, blocknumberAdd = 88) => {
     })
 }
 
-const sendDeployContract = (contract, data, arguments, txParams) => {
+const sendDeployContract = (contract, data, contractArguments, txParams) => {
   return contract
-    .deploy({ data, arguments })
+    .deploy({ data, arguments: contractArguments })
     .send(txParams)
     .catch((err) => {
       throw new Error('sendDeployContract failed\n' + err)

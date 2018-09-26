@@ -70,7 +70,7 @@ describe('Abstractions', function() {
     })
   })
 
-  it('should get and set values via methods and get values via .call', function(done) {
+  it('should get and set values via methods and get values via .call or .send', function(done) {
     const txParams = {
       ...config.txParams,
     }
@@ -128,10 +128,8 @@ describe('Abstractions', function() {
   //   const txParams = {
   //     ...config.txParams,
   //   }
-  //   const arg1 = new web3.utils.BN(30)
-  //   Example.new(arg1, txParams)
+  //   Example.new(web3.utils.toBN(30), txParams)
   //     .then((instance) => {
-  //       log('??')
   //       example = instance
   //       txParams.from = example.address
   //       return example.methods.value().call()
@@ -156,7 +154,7 @@ describe('Abstractions', function() {
   //     .then((value) => {
   //       assert.equal(value.valueOf(), 25, 'Ending value should be twenty-five')
   //       // BigNumber passed in a call.
-  //       return example.methods.parrot(web3.utils.toBN(865)).call()
+  //       return example.methods.parrot(865).call()
   //     })
   //     .then((parrot_value) => {
   //       assert.equal(parrot_value.valueOf(), 865, 'Parrotted value should equal 865')

@@ -83,11 +83,15 @@ const at = function(address) {
   checkAddress(self, address)
   var contract = new this(address)
   contract.then = function(fn) {
-    return self.detectNetwork().then(() => {
-      return self.web3.appchain.getCode(address)
-    }).then((code) => {
-      checkCode(self, code, address)
-    }).then(fn)
+    return self
+      .detectNetwork()
+      .then(() => {
+        return self.web3.appchain.getCode(address)
+      })
+      .then((code) => {
+        checkCode(self, code, address)
+      })
+      .then(fn)
   }
 
   return contract
@@ -333,10 +337,10 @@ const checkLibraries = function(contract) {
     const unlinked = formatLibraries(unlinkedLibraries)
     throw new Error(
       contract.contractName +
-      ' contains unresolved libraries. You must deploy and link the following libraries before you can deploy a new version of ' +
-      contract._json.contractName +
-      ': ' +
-      unlinked
+        ' contains unresolved libraries. You must deploy and link the following libraries before you can deploy a new version of ' +
+        contract._json.contractName +
+        ': ' +
+        unlinked
     )
   }
 }
