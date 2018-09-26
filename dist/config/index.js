@@ -20,10 +20,10 @@ function Config(truffle_directory, working_directory, network) {
     from: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     // to: 'ffffffffffffffffffffffffffffffffff010001',
     nonce: 99,
-    quota: 999999,
+    quota: 9999999,
     version: 0,
-    validUntilBlock: -1,
-    // value: '0',
+    validUntilBlock: undefined,
+    value: '0x0',
     // chainId: 1,
   }
 
@@ -229,6 +229,21 @@ function Config(truffle_directory, working_directory, network) {
       set: function(val) {
         throw new Error(
           "Don't set config.validUntilBlock directly. Instead, set config.networks and then config.networks[<network name>].validUntilBlock"
+        )
+      },
+    },
+    value: {
+      get: function() {
+        try {
+          return self.network_config.value
+        } catch (e) {
+          throw new Error('You must set chainId')
+          // return default_tx_values.value
+        }
+      },
+      set: function(val) {
+        throw new Error(
+          "Don't set config.value directly. Instead, set config.networks and then config.networks[<network name>].value"
         )
       },
     },
