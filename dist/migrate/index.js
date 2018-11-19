@@ -47,18 +47,19 @@ Migration.prototype.run = function(options, callback) {
     if (err) return callback(err)
     deployer
       .start()
-      .then(function() {
-        if (options.save === false) return
+      // .then(function() {
+      //   if (options.save === false) return
 
-        var Migrations = resolver.require('./Migrations.sol')
+      //   var Migrations = resolver.require('./Migrations.sol')
+      //   console.log(Migrations);
 
-        if (Migrations && Migrations.isDeployed()) {
-          logger.log('Saving successful migration to network...')
-          return Migrations.deployed().then(function(migrations) {
-            return migrations.setCompleted(self.number)
-          })
-        }
-      })
+      //   if (Migrations && Migrations.isDeployed()) {
+      //     logger.log('Saving successful migration to network...')
+      //     return Migrations.deployed().then(function(migrations) {
+      //       return migrations.setCompleted(self.number)
+      //     })
+      //   }
+      // })
       .then(function() {
         if (options.save === false) return
         logger.log('Saving artifacts...')
@@ -66,7 +67,7 @@ Migration.prototype.run = function(options, callback) {
       })
       .then(function() {
         // Use process.nextTicK() to prevent errors thrown in the callback from triggering the below catch()
-        return process.nextTick(callback)
+        process.nextTick(callback)
       })
       .catch(function(e) {
         logger.log('Error encountered, bailing. Network state unknown. Review successful transactions manually.')
@@ -76,6 +77,7 @@ Migration.prototype.run = function(options, callback) {
 
   const address = addressFromPrivateKey(options.privateKey)
   const accounts = [address]
+
   Require.file(
     {
       file: self.file,
@@ -201,10 +203,12 @@ var Migrate = {
 
     clone.provider = this.wrapProvider(options.provider, clone.logger)
     clone.resolver = this.wrapResolver(options.resolver, clone.provider)
-
+    // fix inner promise always pending in last migration
+    migrations.push(null)
     async.eachSeries(
       migrations,
       function(migration, finished) {
+        if (migration === null) return
         migration.run(clone, function(err) {
           if (err) return finished(err)
           finished()
