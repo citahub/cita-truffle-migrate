@@ -159,7 +159,7 @@ const detectNetwork = function() {
         accept(self.network_id)
       }
     }
-    // 将 chain id 作为 network id
+    // make chain id as network id
     fetchedChainId(self.appchain)
       .then((chainId) => {
         const network_id = 'appchain' + chainId.toString()
@@ -396,7 +396,6 @@ const deployedContract = function(TruffleContract, inputArgs) {
   const self = TruffleContract
   let { tx_params, args } = parsedDeployContractParams(self, inputArgs)
   var contract = new self.appchain.base.Contract(self.abi)
-  // TODO: 这里需要手动加上, 需要修复
   contract._provider = self.currentProvider
   contract._requestManager.provider = self.appchain.currentProvider
   return deployContract(self.appchain, contract, self.binary, args, tx_params)
