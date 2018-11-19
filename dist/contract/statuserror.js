@@ -1,7 +1,5 @@
 var TruffleError = require("truffle-error");
 var inherits = require("util").inherits;
-// var web3 = require("web3");
-// var web3 = require("@nervos/chain").default
 
 inherits(StatusError, TruffleError);
 

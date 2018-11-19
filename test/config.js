@@ -1,11 +1,9 @@
-var Nervos = require('@nervos/chain').default
+var AppChain = require('@appchain/base').default
 var Web3 = require('web3')
-const { addressFromPrivateKey } = require('../dist/utils/nervosutils')
+const { addressFromPrivateKey } = require('../dist/utils/appchain')
 
 const creater = () => {
   const privateKey = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
-
-  // const provider = 'http://:1337'
   const host = '121.196.200.225'
   const port = '1337'
   const verboseRpc = undefined

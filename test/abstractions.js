@@ -9,7 +9,7 @@ var fs = require('fs')
 var util = require('./util')
 var log = require('../dist/utils/log').title('test/abstractions')
 const config = require('./config')
-const { currentValidUntilBlock } = require('../dist/utils/nervosutils')
+const { currentValidUntilBlock } = require('../dist/utils/appchain')
 
 describe('Abstractions', function() {
   var Example

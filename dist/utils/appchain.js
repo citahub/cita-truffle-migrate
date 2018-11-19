@@ -1,6 +1,6 @@
 const utf8 = require('utf8')
-const Nervos = require('@nervos/chain').default
-var log = require('./log').title('utils/nervos')
+const AppChain = require('@appchain/base').default
+var log = require('./log').title('utils/appchain')
 
 const fromUtf8 = function(str) {
   str = utf8.encode(str)
@@ -18,19 +18,19 @@ const fromUtf8 = function(str) {
   return hex
 }
 
-const addressFromPrivateKey = (privateKey, nervosInstance = null) => {
-  let nervos = nervosInstance
-  if (nervos === null) {
-    nervos = Nervos()
+const addressFromPrivateKey = (privateKey, appchainInstance = null) => {
+  let appchain = appchainInstance
+  if (appchain === null) {
+    appchain = AppChain()
   }
-  const account = nervos.appchain.accounts.privateKeyToAccount(privateKey)
+  const account = appchain.base.accounts.privateKeyToAccount(privateKey)
   const address = account.address.toLocaleLowerCase().slice(2)
   return address
 }
 
-const currentValidUntilBlock = (nervos, blocknumberAdd = 88) => {
+const currentValidUntilBlock = (appchain, blocknumberAdd = 88) => {
   // log('currentValidUntilBlock')
-  return nervos.appchain
+  return appchain.base
     .getBlockNumber()
     .then((number) => {
       const num = Number(number) + Number(blocknumberAdd)
@@ -50,11 +50,11 @@ const sendDeployContract = (contract, data, contractArguments, txParams) => {
     })
 }
 
-const deployContract = (nervos, contract, data, args, txParams) => {
+const deployContract = (appchain, contract, data, args, txParams) => {
   const { privateKey, from, nonce, quota, chainId, version, validUntilBlock, value } = txParams
   const tx = { privateKey, from, nonce, quota, chainId, version, validUntilBlock, value }
   if (tx.validUntilBlock === undefined) {
-    return currentValidUntilBlock(nervos)
+    return currentValidUntilBlock(appchain)
       .then((number) => {
         tx.validUntilBlock = number
       })
@@ -66,7 +66,7 @@ const deployContract = (nervos, contract, data, args, txParams) => {
   }
 }
 
-const storeAbi = (nervos, contractAddress, abi, txParams) => {
+const storeAbi = (appchain, contractAddress, abi, txParams) => {
   let abibytes = fromUtf8(JSON.stringify(abi))
   // const address = res.contractAddress
   const data = contractAddress + abibytes
@@ -86,29 +86,29 @@ const storeAbi = (nervos, contractAddress, abi, txParams) => {
     value, 
   }
   if (tx.validUntilBlock === undefined) {
-    return currentValidUntilBlock(nervos)
+    return currentValidUntilBlock(appchain)
       .then((number) => {
         tx.validUntilBlock = number
       })
       .then(() => {
-        return nervos.appchain.sendTransaction(tx)
+        return appchain.base.sendTransaction(tx)
       })
   }
   // log('storing abi...')
-  return nervos.appchain.sendTransaction(tx)
+  return appchain.base.sendTransaction(tx)
 }
 
-const storeAbiCheck = (nervos, contractAddress, abi, txParams, success, failure) => {
-  return storeAbi(nervos, contractAddress, abi, txParams)
+const storeAbiCheck = (appchain, contractAddress, abi, txParams, success, failure) => {
+  return storeAbi(appchain, contractAddress, abi, txParams)
     .then((res) => {
-      return pollingReceipt(nervos, res.hash)
+      return pollingReceipt(appchain, res.hash)
     })
     .then((res) => {
       let err = res.errorMessage
       if (err !== null) {
         throw err
       }
-      return nervos.appchain.getAbi(contractAddress)
+      return appchain.base.getAbi(contractAddress)
     })
     .then((abi) => {
       if (abi === '0x') {
@@ -122,12 +122,12 @@ const storeAbiCheck = (nervos, contractAddress, abi, txParams, success, failure)
     })
 }
 
-const pollingReceipt = (nervos, hash) => {
+const pollingReceipt = (appchain, hash) => {
   // log('pollingReceipt hash:', hash)
   let remain = 20
   const p = new Promise((resolve, reject) => {
     const func = () => {
-      nervos.appchain
+      appchain.base
         .getTransactionReceipt(hash)
         .then((receipt) => {
           remain--
@@ -150,8 +150,8 @@ const pollingReceipt = (nervos, hash) => {
   return p
 }
 
-const fetchedChainId = (nervos) => {
-  return nervos.appchain.getMetaData().then((res) => {
+const fetchedChainId = (appchain) => {
+  return appchain.base.getMetaData().then((res) => {
     return res.chainId
   })
 }

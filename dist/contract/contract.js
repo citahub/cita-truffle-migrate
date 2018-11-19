@@ -1,4 +1,4 @@
-var Nervos = require('@nervos/chain').default
+var AppChain = require('@appchain/base').default
 var log = require('../utils/log').title('contract/contract')
 const {
   currentValidUntilBlock,
@@ -6,7 +6,7 @@ const {
   pollingReceipt,
   storeAbiCheck,
   fetchedChainId,
-} = require('../utils/nervosutils')
+} = require('../utils/appchain')
 const Utils = require('./utils')
 
 // Planned for future features, logging, etc.
@@ -22,7 +22,7 @@ Provider.prototype.sendAsync = function() {
   return this.provider.sendAsync.apply(this.provider, arguments)
 }
 
-// Accepts a contract object created with web3.eth.contract.
+// Accepts a contract object created with appchain.eth.contract.
 // Optionally, if called without `new`, accepts a network_id and will
 // create a new version of the contract abstraction with that network_id set.
 const Contract = function(contract) {
@@ -32,7 +32,7 @@ const Contract = function(contract) {
 
   if (typeof contract == 'string') {
     var address = contract
-    var contract = new constructor.web3.appchain.Contract(this.abi, address)
+    var contract = new constructor.appchain.base.Contract(this.abi, address)
     contract.address = address
   }
 
@@ -43,7 +43,7 @@ const Contract = function(contract) {
   this.transactionHash = contract.transactionHash
 
   this.sendTransaction = (tx_params) => {
-    return constructor.web3.appchain.sendTransaction.apply(constructor.web3.appchain, [tx_params])
+    return constructor.appchain.base.sendTransaction.apply(constructor.appchain.base, [tx_params])
   }
 
   this.send = (value) => {
@@ -55,8 +55,9 @@ const setProvider = function(provider) {
   if (!provider) {
     throw new Error('Invalid provider passed to setProvider(); provider is ' + provider)
   }
+  AppChain(provider)
   var wrapped = new Provider(provider)
-  this.web3.setProvider(wrapped)
+  this.appchain.setProvider(wrapped)
   this.currentProvider = provider
 }
 
@@ -86,7 +87,7 @@ const at = function(address) {
     return self
       .detectNetwork()
       .then(() => {
-        return self.web3.appchain.getCode(address)
+        return self.appchain.base.getCode(address)
       })
       .then((code) => {
         checkCode(self, code, address)
@@ -159,7 +160,7 @@ const detectNetwork = function() {
       }
     }
     // 将 chain id 作为 network id
-    fetchedChainId(self.web3)
+    fetchedChainId(self.appchain)
       .then((chainId) => {
         const network_id = 'appchain' + chainId.toString()
         self.setNetwork(network_id)
@@ -251,8 +252,8 @@ const clone = function(json) {
 
   Utils.addClassMethodsAndProperties(ContractClone)
 
-  // ContractClone.web3 = new Web3()
-  ContractClone.web3 = Nervos()
+  // ContractClone.appchain = new AppChain()
+  ContractClone.appchain = AppChain()
   ContractClone.class_defaults = ContractClone.prototype.defaults || {}
 
   if (network_id) {
@@ -394,38 +395,36 @@ const parsedDeployContractParams = function(contract, args) {
 const deployedContract = function(TruffleContract, inputArgs) {
   const self = TruffleContract
   let { tx_params, args } = parsedDeployContractParams(self, inputArgs)
-  var contract = new self.web3.appchain.Contract(self.abi)
+  var contract = new self.appchain.base.Contract(self.abi)
   // TODO: 这里需要手动加上, 需要修复
-  contract._requestManager.provider = self.web3.currentProvider
-  return (
-    deployContract(self.web3, contract, self.binary, args, tx_params)
-      .then((res) => {
-        console.log('transaction hash of deploy contract: ', res.hash)
-        return pollingReceipt(self.web3, res.hash)
-      })
-      .then((res) => {
-        if (res.errorMessage !== null) {
-          throw new Error(`deployContract error:\n ${res.errorMessage}`)
-        }
-        contract.transactionHash = res.transactionHash
-        contract.address = res.contractAddress
-        contract.options.address = res.contractAddress
-      })
-      // TODO: abi truffle 已经存了, 所以这里不用存到链上(待定)
-      // .then(() => {
-      //   const success = `${self.contract_name} store abi success`
-      //   const failure = `${self.contract_name} store abi failure`
-      //   return storeAbiCheck(self.web3, contract.address, self.abi, tx_params, success, failure)
-      // })
-      .then(() => {
-        const instance = new self(contract)
-        return instance
-      })
-      .catch((err) => {
-        console.error('Error in deploy:', err)
-        throw err
-      })
-  )
+  contract._provider = self.currentProvider
+  contract._requestManager.provider = self.appchain.currentProvider
+  return deployContract(self.appchain, contract, self.binary, args, tx_params)
+    .then((res) => {
+      console.log('transaction hash of deploy contract: ', res.hash)
+      return pollingReceipt(self.appchain, res.hash)
+    })
+    .then((res) => {
+      if (res.errorMessage !== null) {
+        throw new Error(`deployContract error:\n ${res.errorMessage}`)
+      }
+      contract.transactionHash = res.transactionHash
+      contract.address = res.contractAddress
+      contract.options.address = res.contractAddress
+    })
+    .then(() => {
+      const success = `${self.contract_name} store abi success`
+      const failure = `${self.contract_name} store abi failure`
+      return storeAbiCheck(self.appchain, contract.address, self.abi, tx_params, success, failure)
+    })
+    .then(() => {
+      const instance = new self(contract)
+      return instance
+    })
+    .catch((err) => {
+      console.error('Error in deploy:', err)
+      throw err
+    })
 }
 
 Contract._static_methods = {
@@ -581,9 +580,9 @@ Contract._properties = {
     return this.network.links || {}
   },
   events: function() {
-    // helper web3; not used for provider
-    // var web3 = new Web3()
-    var web3 = Nervos()
+    // helper appchain; not used for provider
+    // var appchain = new AppChain()
+    var appchain = AppChain()
 
     var events
 
@@ -611,7 +610,7 @@ Contract._properties = {
 
       signature += ')'
 
-      var topic = web3.utils.sha3(signature)
+      var topic = appchain.utils.sha3(signature)
 
       events[topic] = item
     })

@@ -5,7 +5,7 @@ var path = require('path')
 // var requireNoCache = require("require-nocache")(module);
 var contract = require('../dist/contract')
 // var Web3 = require('web3')
-var Web3 = require('@nervos/chain').default
+var Web3 = require('@appchain/base').default
 // var debug = require("debug")("ganache-core");
 // var TestRPC = require("ganache-core");
 var fs = require('fs')
@@ -13,7 +13,7 @@ var solc = require('solc')
 var Schema = require('truffle-contract-schema')
 var Provider = require('truffle-provider')
 const config = require('./config')
-const { fetchedChainId, addressFromPrivateKey } = require('../dist/utils/nervosutils')
+const { fetchedChainId, addressFromPrivateKey } = require('../dist/utils/appchain')
 var log = require('../dist/utils/log').title('test/linkings')
 
 // Clean up after solidity. Only remove solidity's listener,

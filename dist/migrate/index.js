@@ -4,12 +4,11 @@ var path = require('path')
 var ResolverIntercept = require('./resolverintercept')
 var Require = require('truffle-require')
 var async = require('async')
-// var Web3 = require("web3");
-var Web3 = require('@nervos/chain').default
+var AppChain = require('@appchain/base').default
 var expect = require('truffle-expect')
 var Deployer = require('truffle-deployer')
 var log = require('../utils/log').title('migrate/index')
-const { addressFromPrivateKey } = require('../utils/nervosutils')
+const { addressFromPrivateKey } = require('../utils/appchain')
 
 function Migration(file) {
   this.file = path.resolve(file)
@@ -20,8 +19,8 @@ Migration.prototype.run = function(options, callback) {
   var self = this
   var logger = options.logger
 
-  var web3 = Web3()
-  web3.setProvider(options.provider)
+  var appchain = AppChain(options.provider)
+  appchain.setProvider(options.provider)
 
   logger.log('Running migration: ' + path.relative(options.migrations_directory, this.file))
 
@@ -29,7 +28,7 @@ Migration.prototype.run = function(options, callback) {
 
   // Initial context.
   var context = {
-    web3: web3,
+    appchain: appchain,
   }
 
   var deployer = new Deployer({
@@ -39,7 +38,7 @@ Migration.prototype.run = function(options, callback) {
       },
     },
     network: options.network,
-    network_id: options.network_id,
+    network_id: options.networks[options.network].network_id,
     provider: options.provider,
     basePath: path.dirname(this.file),
   })
@@ -67,7 +66,7 @@ Migration.prototype.run = function(options, callback) {
       })
       .then(function() {
         // Use process.nextTicK() to prevent errors thrown in the callback from triggering the below catch()
-        process.nextTick(callback)
+        return process.nextTick(callback)
       })
       .catch(function(e) {
         logger.log('Error encountered, bailing. Network state unknown. Review successful transactions manually.')
@@ -76,7 +75,6 @@ Migration.prototype.run = function(options, callback) {
   }
 
   const address = addressFromPrivateKey(options.privateKey)
-  log('address:', address)
   const accounts = [address]
   Require.file(
     {

@@ -7,7 +7,7 @@ var artifactor = require("truffle-artifactor");
 var contract = require("truffle-contract");
 var series = require("async").series;
 var path = require("path");
-var SolidityCoder = require("web3/lib/solidity/coder.js");
+var SolidityCoder = require("appchain/lib/solidity/coder.js");
 
 var SolidityTest = {
   define: function(abstraction, dependency_paths, runner, mocha) {
@@ -35,7 +35,7 @@ var SolidityTest = {
       if (result.logs.length) return result.logs;
 
       var logs = [];
-      var signature = web3.sha3('TestEvent(bool,string)');
+      var signature = appchain.sha3('TestEvent(bool,string)');
 
       result.receipt.logs.forEach(function(log) {
         if (log.topics.length === 2 && log.topics[0] === signature){

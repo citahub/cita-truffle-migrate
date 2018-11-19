@@ -1,5 +1,5 @@
-// Using web3 for its sha function...
-var Web3 = require("web3");
+// Using appchain for its sha function...
+var AppChain = require("appchain");
 
 var Deployed = {
 
@@ -31,9 +31,9 @@ var Deployed = {
 
   // Pulled from ethereumjs-util, but I don't want all its dependencies at the moment.
   toChecksumAddress: function (address) {
-    var web3 = new Web3();
+    var appchain = new AppChain();
     address = address.toLowerCase().replace("0x", "");
-    var hash = web3.sha3(address).replace("0x", "");
+    var hash = appchain.sha3(address).replace("0x", "");
     var ret = '0x'
 
     for (var i = 0; i < address.length; i++) {
