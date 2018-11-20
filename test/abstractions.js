@@ -1,13 +1,12 @@
-var assert = require('chai').assert
-var Schema = require('truffle-contract-schema')
-var contract = require('../dist/contract')
-var temp = require('temp').track()
-var path = require('path')
-var solc = require('solc')
-var fs = require('fs')
-// var requireNoCache = require("require-nocache")(module);
-var util = require('./util')
-var log = require('../dist/utils/log').title('test/abstractions')
+const assert = require('chai').assert
+const Schema = require('truffle-contract-schema')
+const contract = require('../dist/contract')
+const temp = require('temp').track()
+const path = require('path')
+const solc = require('solc')
+const fs = require('fs')
+const util = require('./util')
+const log = require('../dist/utils/log').title('test/abstractions')
 const config = require('./config')
 const { currentValidUntilBlock } = require('../dist/utils/appchain')
 

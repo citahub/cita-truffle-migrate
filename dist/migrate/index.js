@@ -1,13 +1,13 @@
-var fs = require('fs')
-var dir = require('node-dir')
-var path = require('path')
-var ResolverIntercept = require('./resolverintercept')
-var Require = require('truffle-require')
-var async = require('async')
-var AppChain = require('@appchain/base').default
-var expect = require('truffle-expect')
-var Deployer = require('truffle-deployer')
-var log = require('../utils/log').title('migrate/index')
+const fs = require('fs')
+const dir = require('node-dir')
+const path = require('path')
+const ResolverIntercept = require('./resolverintercept')
+const Require = require('truffle-require')
+const async = require('async')
+const AppChain = require('@appchain/base').default
+const expect = require('truffle-expect')
+const Deployer = require('truffle-deployer')
+const log = require('../utils/log').title('migrate/index')
 const { addressFromPrivateKey } = require('../utils/appchain')
 
 function Migration(file) {
@@ -16,22 +16,22 @@ function Migration(file) {
 }
 
 Migration.prototype.run = function(options, callback) {
-  var self = this
-  var logger = options.logger
+  const self = this
+  const logger = options.logger
 
-  var appchain = AppChain(options.provider)
+  const appchain = AppChain(options.provider)
   appchain.setProvider(options.provider)
 
   logger.log('Running migration: ' + path.relative(options.migrations_directory, this.file))
 
-  var resolver = new ResolverIntercept(options.resolver)
+  const resolver = new ResolverIntercept(options.resolver)
 
   // Initial context.
-  var context = {
+  const context = {
     appchain: appchain,
   }
 
-  var deployer = new Deployer({
+  const deployer = new Deployer({
     logger: {
       log: function(msg) {
         logger.log('  ' + msg)
@@ -43,23 +43,10 @@ Migration.prototype.run = function(options, callback) {
     basePath: path.dirname(this.file),
   })
 
-  var finish = function(err) {
+  const finish = function(err) {
     if (err) return callback(err)
     deployer
       .start()
-      // .then(function() {
-      //   if (options.save === false) return
-
-      //   var Migrations = resolver.require('./Migrations.sol')
-      //   console.log(Migrations);
-
-      //   if (Migrations && Migrations.isDeployed()) {
-      //     logger.log('Saving successful migration to network...')
-      //     return Migrations.deployed().then(function(migrations) {
-      //       return migrations.setCompleted(self.number)
-      //     })
-      //   }
-      // })
       .then(function() {
         if (options.save === false) return
         logger.log('Saving artifacts...')

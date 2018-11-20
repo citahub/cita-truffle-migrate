@@ -22,17 +22,17 @@ var command = {
     },
   },
   run: function(options, done) {
-    var OS = require('os')
-    var Config = require('../../config')
-    var Contracts = require('../../workflow-compile')
-    var Resolver = require('../../resolver')
-    var Artifactor = require('truffle-artifactor')
-    var Migrate = require('../../migrate')
-    var Environment = require('../environment')
-    var temp = require('temp')
-    var copy = require('../copy')
+    const OS = require('os')
+    const Config = require('../../config')
+    const Contracts = require('../../workflow-compile')
+    const Resolver = require('../../resolver')
+    const Artifactor = require('truffle-artifactor')
+    const Migrate = require('../../migrate')
+    const Environment = require('../environment')
+    const temp = require('temp')
+    const copy = require('../copy')
 
-    var config = Config.detect(options)
+    const config = Config.detect(options)
 
     function setupDryRunEnvironmentThenRunMigrations(callback) {
       Environment.fork(config, function(err) {
@@ -91,9 +91,9 @@ var command = {
       Environment.detect(config, function(err) {
         if (err) return done(err)
 
-        var dryRun = options.dryRun === true
+        const dryRun = options.dryRun === true
 
-        var networkMessage = "Using network '" + config.network + "'"
+        const networkMessage = "Using network '" + config.network + "'"
 
         if (dryRun) {
           networkMessage += ' (dry run)'

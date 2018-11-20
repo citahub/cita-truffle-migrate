@@ -1,11 +1,11 @@
-var AppChain = require('@appchain/base').default
-var ethJSABI = require('ethjs-abi')
-var StatusError = require('./statuserror.js')
-var log = require('../utils/log').title('contract/utils')
+const AppChain = require('@appchain/base').default
+const ethJSABI = require('ethjs-abi')
+const StatusError = require('./statuserror.js')
+const log = require('../utils/log').title('contract/utils')
 
 const appchain = AppChain()
 
-var Utils = {
+const Utils = {
   is_object: function(val) {
     return typeof val == 'object' && !Array.isArray(val)
   },
@@ -24,7 +24,7 @@ var Utils = {
         // This function has been adapted from appchain's SolidityEvent.decode() method,
         // and built to work with ethjs-abi.
 
-        var copy = Utils.merge({}, log)
+        const copy = Utils.merge({}, log)
 
         function partialABI(fullABI, indexed) {
           var inputs = fullABI.inputs.filter(function(i) {
@@ -146,16 +146,16 @@ var Utils = {
               return
             }
 
-            var timeout
+            let timeout
             if (C.synchronization_timeout === 0 || C.synchronization_timeout !== undefined) {
               timeout = C.synchronization_timeout
             } else {
               timeout = 240000
             }
 
-            var start = new Date().getTime()
+            const start = new Date().getTime()
 
-            var make_attempt = function() {
+            const make_attempt = function() {
               C.appchain.base.getTransactionReceipt(tx, function(err, receipt) {
                 if (err && !err.toString().includes('unknown transaction')) {
                   return reject(err)

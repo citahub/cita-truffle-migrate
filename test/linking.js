@@ -8,21 +8,18 @@ var contract = require('../dist/contract')
 var Web3 = require('@appchain/base').default
 // var debug = require("debug")("ganache-core");
 // var TestRPC = require("ganache-core");
-var fs = require('fs')
-var solc = require('solc')
-var Schema = require('truffle-contract-schema')
-var Provider = require('truffle-provider')
+const fs = require('fs')
+const solc = require('solc')
+const Schema = require('truffle-contract-schema')
+const Provider = require('truffle-provider')
 const config = require('./config')
 const { fetchedChainId, addressFromPrivateKey } = require('../dist/utils/appchain')
-var log = require('../dist/utils/log').title('test/linkings')
+const log = require('../dist/utils/log').title('test/linkings')
 
 // Clean up after solidity. Only remove solidity's listener,
 // which happens to be the first.
 process.removeListener('uncaughtException', process.listeners('uncaughtException')[0] || function() {})
 
-var log = {
-  log: console.log.bind(console),
-}
 
 describe('Library linking', function() {
   var LibraryExample

@@ -1,19 +1,19 @@
-var fs = require('fs')
-var _ = require('lodash')
-var path = require('path')
-var Provider = require('truffle-provider')
-var TruffleError = require('truffle-error')
-var Module = require('module')
-var findUp = require('find-up')
-var originalrequire = require('original-require')
+const fs = require('fs')
+const _ = require('lodash')
+const path = require('path')
+const Provider = require('truffle-provider')
+const TruffleError = require('truffle-error')
+const Module = require('module')
+const findUp = require('find-up')
+const originalrequire = require('original-require')
 
-var DEFAULT_CONFIG_FILENAME = 'truffle.js'
-var BACKUP_CONFIG_FILENAME = 'truffle-config.js' // For Windows + Command Prompt
+const DEFAULT_CONFIG_FILENAME = 'truffle.js'
+const BACKUP_CONFIG_FILENAME = 'truffle-config.js' // For Windows + Command Prompt
 
 function Config(truffle_directory, working_directory, network) {
-  var self = this
+  const self = this
 
-  var default_tx_values = {
+  const default_tx_values = {
     // gas: 6721975,
     // gasPrice: 100000000000, // 100 Shannon,
     // from: null,
@@ -61,7 +61,7 @@ function Config(truffle_directory, working_directory, network) {
     },
   }
 
-  var props = {
+  const props = {
     // These are already set.
     truffle_directory: function() {},
     working_directory: function() {},

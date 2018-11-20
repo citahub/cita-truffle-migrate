@@ -1,5 +1,5 @@
-var AppChain = require('@appchain/base').default
-var Web3 = require('web3')
+const AppChain = require('@appchain/base').default
+const Web3 = require('web3')
 const { addressFromPrivateKey } = require('../dist/utils/appchain')
 
 const creater = () => {

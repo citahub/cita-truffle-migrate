@@ -1,14 +1,10 @@
-var AppChain = require('@appchain/base').default
-var TruffleError = require('truffle-error')
-var expect = require('truffle-expect')
-var Resolver = require('../resolver')
-var Artifactor = require('truffle-artifactor')
-// var TestRPC = require("ganache-cli");
-// var spawn = require('child_process').spawn
-// var path = require('path')
-// var Develop = require('./develop')
+const AppChain = require('@appchain/base').default
+const TruffleError = require('truffle-error')
+const expect = require('truffle-expect')
+const Resolver = require('../resolver')
+const Artifactor = require('truffle-artifactor')
 
-var Environment = {
+const Environment = {
   // It's important config is a Config object and not a vanilla object
   detect: function(config, callback) {
     expect.options(config, ['networks'])
@@ -48,14 +44,14 @@ var Environment = {
   fork: function(config, callback) {
     expect.options(config, ['from'])
 
-    var appchain = AppChain(config.provider)
+    const appchain = AppChain(config.provider)
 
     appchain.eth.getAccounts(function(err, accounts) {
       if (err) return callback(err)
 
-      var upstreamNetwork = config.network
-      var upstreamConfig = config.networks[upstreamNetwork]
-      var forkedNetwork = config.network + '-fork'
+      const upstreamNetwork = config.network
+      const upstreamConfig = config.networks[upstreamNetwork]
+      const forkedNetwork = config.network + '-fork'
 
       config.networks[forkedNetwork] = {
         network_id: config.network_id,
@@ -76,8 +72,8 @@ var Environment = {
 
     expect.options(config, ['networks'])
 
-    var network = config.network || 'develop'
-    var url = `http://${testrpcOptions.host}:${testrpcOptions.port}/`
+    const network = config.network || 'develop'
+    const url = `http://${testrpcOptions.host}:${testrpcOptions.port}/`
 
     config.networks[network] = {
       network_id: testrpcOptions.network_id,

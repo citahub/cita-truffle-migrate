@@ -1,6 +1,6 @@
-var Provider = require('truffle-provider')
-var Web3 = require('@appchain/base').default
-var log = require('../dist/utils/log').title('test/util')
+const Provider = require('truffle-provider')
+const Web3 = require('@appchain/base').default
+const log = require('../dist/utils/log').title('test/util')
 const config = require('./config')
 const { addressFromPrivateKey } = require('../dist/utils/appchain')
 

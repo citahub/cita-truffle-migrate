@@ -1,5 +1,5 @@
-var AppChain = require('@appchain/base').default
-var log = require('../utils/log').title('contract/contract')
+const AppChain = require('@appchain/base').default
+const log = require('../utils/log').title('contract/contract')
 const {
   currentValidUntilBlock,
   deployContract,
@@ -25,14 +25,14 @@ Provider.prototype.sendAsync = function() {
 // Accepts a contract object created with appchain.eth.contract.
 // Optionally, if called without `new`, accepts a network_id and will
 // create a new version of the contract abstraction with that network_id set.
-const Contract = function(contract) {
-  var self = this
-  var constructor = this.constructor
+const Contract = function (contract) {
+  const self = this
+  const constructor = this.constructor
   this.abi = constructor.abi
 
   if (typeof contract == 'string') {
-    var address = contract
-    var contract = new constructor.appchain.base.Contract(this.abi, address)
+    const address = contract
+    contract = new constructor.appchain.base.Contract(this.abi, address)
     contract.address = address
   }
 
@@ -56,7 +56,7 @@ const setProvider = function(provider) {
     throw new Error('Invalid provider passed to setProvider(); provider is ' + provider)
   }
   AppChain(provider)
-  var wrapped = new Provider(provider)
+  const wrapped = new Provider(provider)
   this.appchain.setProvider(wrapped)
   this.currentProvider = provider
 }
@@ -110,6 +110,7 @@ const deployed = function() {
     if (!self.isDeployed()) {
       throw new Error(self.contractName + ' has not been deployed to detected network (' + self.network_id + ')')
     }
+    console.log('address', self.address);
     return new self(self.address)
   })
 }
@@ -395,7 +396,7 @@ const parsedDeployContractParams = function(contract, args) {
 const deployedContract = function(TruffleContract, inputArgs) {
   const self = TruffleContract
   let { tx_params, args } = parsedDeployContractParams(self, inputArgs)
-  var contract = new self.appchain.base.Contract(self.abi)
+  let contract = new self.appchain.base.Contract(self.abi)
   contract._provider = self.currentProvider
   contract._requestManager.provider = self.appchain.currentProvider
   return deployContract(self.appchain, contract, self.binary, args, tx_params)
@@ -581,9 +582,9 @@ Contract._properties = {
   events: function() {
     // helper appchain; not used for provider
     // var appchain = new AppChain()
-    var appchain = AppChain()
+    const appchain = AppChain()
 
-    var events
+    let events
 
     if (this._json.networks[this.network_id] == null) {
       events = {}
@@ -592,12 +593,12 @@ Contract._properties = {
     }
 
     // Merge abi events with whatever's returned.
-    var abi = this.abi
+    const abi = this.abi
 
     abi.forEach(function(item) {
       if (item.type != 'event') return
 
-      var signature = item.name + '('
+      let signature = item.name + '('
 
       item.inputs.forEach(function(input, index) {
         signature += input.type
@@ -609,7 +610,7 @@ Contract._properties = {
 
       signature += ')'
 
-      var topic = appchain.utils.sha3(signature)
+      const topic = appchain.utils.sha3(signature)
 
       events[topic] = item
     })
