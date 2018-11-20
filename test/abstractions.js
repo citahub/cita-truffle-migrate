@@ -69,8 +69,8 @@ describe('Abstractions', function() {
     const txParams = {
       ...config.txParams,
     }
-    var example
-    this.timeout(20000)
+    let example
+    this.timeout(30000)
     Example.new(1, txParams)
       .then((instance) => {
         example = instance
