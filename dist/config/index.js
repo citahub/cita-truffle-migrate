@@ -14,17 +14,12 @@ function Config(truffle_directory, working_directory, network) {
   const self = this
 
   const default_tx_values = {
-    // gas: 6721975,
-    // gasPrice: 100000000000, // 100 Shannon,
-    // from: null,
     from: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-    // to: 'ffffffffffffffffffffffffffffffffff010001',
     nonce: 99,
     quota: 9999999,
     version: 0,
     validUntilBlock: undefined,
     value: '0x0',
-    // chainId: 1,
   }
 
   this._values = {
