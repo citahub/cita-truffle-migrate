@@ -1,15 +1,15 @@
-var AppChain = require("appchain");
-var Config = require("truffle-config");
-var Migrate = require("truffle-migrate");
-var TestResolver = require("./testresolver");
-var TestSource = require("./testsource");
-var expect = require("truffle-expect");
-var contract = require("truffle-contract");
-var SolidityCoder = require("appchain/lib/solidity/coder.js");
-var path = require("path");
-var _ = require("lodash");
-var async = require("async");
-var fs = require("fs");
+const AppChain = require("appchain");
+const Config = require("truffle-config");
+const Migrate = require("truffle-migrate");
+const TestResolver = require("./testresolver");
+const TestSource = require("./testsource");
+const expect = require("truffle-expect");
+const contract = require("truffle-contract");
+const SolidityCoder = require("appchain/lib/solidity/coder.js");
+const path = require("path");
+const _ = require("lodash");
+const async = require("async");
+const fs = require("fs");
 
 function TestRunner(options) {
   options = options || {};
@@ -61,12 +61,12 @@ TestRunner.prototype.initialize = function(callback) {
       }, function(err, data) {
         if (err) return callback(err);
 
-        var contracts = data.map(JSON.parse).map(contract);
-        var abis = _.flatMap(contracts, "abi");
+        const contracts = data.map(JSON.parse).map(contract);
+        const abis = _.flatMap(contracts, "abi");
 
         abis.map(function(abi) {
           if (abi.type == "event") {
-            var signature = abi.name + "(" + _.map(abi.inputs, "type").join(",") + ")";
+            const signature = abi.name + "(" + _.map(abi.inputs, "type").join(",") + ")";
             self.known_events[appchain.sha3(signature)] = {
               signature: signature,
               abi_entry: abi

@@ -1,19 +1,19 @@
-var TestCase = require("mocha/lib/test.js");
-var Suite = require("mocha/lib/suite.js");
-var Deployer = require("truffle-deployer");
-var find_contracts = require("truffle-contract-sources");
-var compile = require("truffle-compile");
-var artifactor = require("truffle-artifactor");
-var contract = require("truffle-contract");
-var series = require("async").series;
-var path = require("path");
-var SolidityCoder = require("appchain/lib/solidity/coder.js");
+const TestCase = require("mocha/lib/test.js");
+const Suite = require("mocha/lib/suite.js");
+const Deployer = require("truffle-deployer");
+const find_contracts = require("truffle-contract-sources");
+const compile = require("truffle-compile");
+const artifactor = require("truffle-artifactor");
+const contract = require("truffle-contract");
+const series = require("async").series;
+const path = require("path");
+const SolidityCoder = require("appchain/lib/solidity/coder.js");
 
-var SolidityTest = {
+const SolidityTest = {
   define: function(abstraction, dependency_paths, runner, mocha) {
-    var self = this;
+    const self = this;
 
-    var suite = new Suite(abstraction.contract_name, {});
+    const suite = new Suite(abstraction.contract_name, {});
     suite.timeout(runner.BEFORE_TIMEOUT);
 
     // Set up our runner's needs first.

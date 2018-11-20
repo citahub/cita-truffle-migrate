@@ -11,12 +11,8 @@ const config = require('./config')
 const { currentValidUntilBlock } = require('../dist/utils/appchain')
 
 describe('Abstractions', function() {
-  var Example
-  var accounts
-  var abi
-  var binary
-  var network_id
-  var web3
+  let Example
+  let web3
 
   this.timeout(20000)
 

@@ -581,7 +581,6 @@ Contract._properties = {
   },
   events: function() {
     // helper appchain; not used for provider
-    // var appchain = new AppChain()
     const appchain = AppChain()
 
     let events

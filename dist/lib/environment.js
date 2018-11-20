@@ -25,7 +25,7 @@ const Environment = {
       return callback(new Error('No network specified. Cannot determine current network.'))
     }
 
-    var network_config = config.networks[config.network]
+    const network_config = config.networks[config.network]
 
     if (!network_config) {
       return callback(
@@ -68,7 +68,7 @@ const Environment = {
   },
 
   develop: function(config, testrpcOptions, callback) {
-    var self = this
+    const self = this
 
     expect.options(config, ['networks'])
 

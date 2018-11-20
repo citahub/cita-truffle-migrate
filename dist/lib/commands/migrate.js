@@ -1,4 +1,4 @@
-var command = {
+const command = {
   command: 'migrate',
   description: 'Run migrations to deploy contracts',
   builder: {
@@ -43,7 +43,7 @@ var command = {
           if (err) return callback(err)
 
           function cleanup() {
-            var args = arguments
+            const args = arguments
             // Ensure directory cleanup.
             temp.cleanup(function(err) {
               // Ignore cleanup errors.

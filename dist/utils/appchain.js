@@ -1,6 +1,6 @@
 const utf8 = require('utf8')
 const AppChain = require('@appchain/base').default
-var log = require('./log').title('utils/appchain')
+const log = require('./log').title('utils/appchain')
 
 const fromUtf8 = function(str) {
   str = utf8.encode(str)

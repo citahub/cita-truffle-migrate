@@ -1,13 +1,8 @@
-// Override artifactor
-var assert = require('chai').assert
-var temp = require('temp').track()
-var path = require('path')
-// var requireNoCache = require("require-nocache")(module);
-var contract = require('../dist/contract')
-// var Web3 = require('web3')
-var Web3 = require('@appchain/base').default
-// var debug = require("debug")("ganache-core");
-// var TestRPC = require("ganache-core");
+const assert = require('chai').assert
+const temp = require('temp').track()
+const path = require('path')
+const contract = require('../dist/contract')
+const Web3 = require('@appchain/base').default
 const fs = require('fs')
 const solc = require('solc')
 const Schema = require('truffle-contract-schema')
@@ -22,10 +17,10 @@ process.removeListener('uncaughtException', process.listeners('uncaughtException
 
 
 describe('Library linking', function() {
-  var LibraryExample
-  var provider = Provider.create(config.options)
-  var network_id
-  var web3 = Web3(provider)
+  let LibraryExample
+  let network_id
+  const provider = Provider.create(config.options)
+  const web3 = Web3(provider)
 
   before(function(done) {
     fetchedChainId(web3)
