@@ -1,5 +1,5 @@
-var assert = require("chai").assert;
-var contract = require("../dist/contract");
+const assert = require("chai").assert;
+const contract = require("../dist/contract");
 
 describe("Custom options", function() {
 

@@ -1,7 +1,7 @@
-var contract = require("../dist/contract");
-var fs = require("fs");
-var assert = require("assert");
-var path = require("path");
+const contract = require("../dist/contract");
+const fs = require("fs");
+const assert = require("assert");
+const path = require("path");
 
 describe("Deprecated json keys", function() {
 

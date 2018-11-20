@@ -1,12 +1,12 @@
-var assert = require('assert')
-var solc = require('solc')
+const assert = require('assert')
+const solc = require('solc')
 
 // Clean up after solidity. Only remove solidity's listener,
 // which happens to be the first.
 process.removeListener('uncaughtException', process.listeners('uncaughtException')[0])
 
-var fs = require('fs')
-var contract = require('../dist/contract')
+const fs = require('fs')
+const contract = require('../dist/contract')
 
 
 describe('Cloning', function() {

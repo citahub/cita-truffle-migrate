@@ -1,25 +1,16 @@
-// var Web3 = require('web3')
-var Web3 = require('@nervos/chain').default
-var ethJSABI = require('ethjs-abi')
-var StatusError = require('./statuserror.js')
-var log = require('../utils/log').title('contract/utils')
+const AppChain = require('@appchain/base').default
+const ethJSABI = require('ethjs-abi')
+const StatusError = require('./statuserror.js')
+const log = require('../utils/log').title('contract/utils')
 
-// var BigNumber = new Web3().toBigNumber(0).constructor
-const web3 = Web3()
+const appchain = AppChain()
 
-var Utils = {
+const Utils = {
   is_object: function(val) {
     return typeof val == 'object' && !Array.isArray(val)
   },
   is_big_number: function(val) {
-    // Instanceof won't work because we have multiple versions of Web3.
-    return web3.utils.isBigNumber(val) || web3.utils.isBN(val)
-    // try {
-    //   new BigNumber(val)
-    //   return true
-    // } catch (e) {
-    //   return false
-    // }
+    return appchain.utils.isBigNumber(val) || appchain.utils.isBN(val)
   },
   decodeLogs: function(C, instance, logs) {
     return logs
@@ -30,10 +21,10 @@ var Utils = {
           return null
         }
 
-        // This function has been adapted from web3's SolidityEvent.decode() method,
+        // This function has been adapted from appchain's SolidityEvent.decode() method,
         // and built to work with ethjs-abi.
 
-        var copy = Utils.merge({}, log)
+        const copy = Utils.merge({}, log)
 
         function partialABI(fullABI, indexed) {
           var inputs = fullABI.inputs.filter(function(i) {
@@ -81,7 +72,7 @@ var Utils = {
 
           // We have BN. Convert it to BigNumber
           if (val.constructor.isBN) {
-            copy.args[key] = C.web3.toBN('0x' + val.toString(16))
+            copy.args[key] = C.appchain.toBN('0x' + val.toString(16))
           }
         })
 
@@ -155,17 +146,17 @@ var Utils = {
               return
             }
 
-            var timeout
+            let timeout
             if (C.synchronization_timeout === 0 || C.synchronization_timeout !== undefined) {
               timeout = C.synchronization_timeout
             } else {
               timeout = 240000
             }
 
-            var start = new Date().getTime()
+            const start = new Date().getTime()
 
-            var make_attempt = function() {
-              C.web3.appchain.getTransactionReceipt(tx, function(err, receipt) {
+            const make_attempt = function() {
+              C.appchain.base.getTransactionReceipt(tx, function(err, receipt) {
                 if (err && !err.toString().includes('unknown transaction')) {
                   return reject(err)
                 }

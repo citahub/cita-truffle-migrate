@@ -1,15 +1,15 @@
-var Web3 = require("web3");
-var Config = require("truffle-config");
-var Migrate = require("truffle-migrate");
-var TestResolver = require("./testresolver");
-var TestSource = require("./testsource");
-var expect = require("truffle-expect");
-var contract = require("truffle-contract");
-var SolidityCoder = require("web3/lib/solidity/coder.js");
-var path = require("path");
-var _ = require("lodash");
-var async = require("async");
-var fs = require("fs");
+const AppChain = require("appchain");
+const Config = require("truffle-config");
+const Migrate = require("truffle-migrate");
+const TestResolver = require("./testresolver");
+const TestSource = require("./testsource");
+const expect = require("truffle-expect");
+const contract = require("truffle-contract");
+const SolidityCoder = require("appchain/lib/solidity/coder.js");
+const path = require("path");
+const _ = require("lodash");
+const async = require("async");
+const fs = require("fs");
 
 function TestRunner(options) {
   options = options || {};
@@ -30,8 +30,8 @@ function TestRunner(options) {
   this.first_snapshot = true;
   this.initial_snapshot = null;
   this.known_events = {};
-  this.web3 = new Web3();
-  this.web3.setProvider(options.provider);
+  this.appchain = new AppChain();
+  this.appchain.setProvider(options.provider);
 
   // For each test
   this.currentTestStartBlock = null;
@@ -61,13 +61,13 @@ TestRunner.prototype.initialize = function(callback) {
       }, function(err, data) {
         if (err) return callback(err);
 
-        var contracts = data.map(JSON.parse).map(contract);
-        var abis = _.flatMap(contracts, "abi");
+        const contracts = data.map(JSON.parse).map(contract);
+        const abis = _.flatMap(contracts, "abi");
 
         abis.map(function(abi) {
           if (abi.type == "event") {
-            var signature = abi.name + "(" + _.map(abi.inputs, "type").join(",") + ")";
-            self.known_events[web3.sha3(signature)] = {
+            const signature = abi.name + "(" + _.map(abi.inputs, "type").join(",") + ")";
+            self.known_events[appchain.sha3(signature)] = {
               signature: signature,
               abi_entry: abi
             };
@@ -124,10 +124,10 @@ TestRunner.prototype.resetState = function(callback) {
 
 TestRunner.prototype.startTest = function(mocha, callback) {
   var self = this;
-  this.web3.eth.getBlockNumber(function(err, result) {
+  this.appchain.eth.getBlockNumber(function(err, result) {
     if (err) return callback(err);
 
-    result = web3.toBigNumber(result);
+    result = appchain.toBigNumber(result);
 
     // Add one in base 10
     self.currentTestStartBlock = result.plus(1, 10);

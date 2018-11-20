@@ -1,15 +1,14 @@
-var fs = require('fs')
-var dir = require('node-dir')
-var path = require('path')
-var ResolverIntercept = require('./resolverintercept')
-var Require = require('truffle-require')
-var async = require('async')
-// var Web3 = require("web3");
-var Web3 = require('@nervos/chain').default
-var expect = require('truffle-expect')
-var Deployer = require('truffle-deployer')
-var log = require('../utils/log').title('migrate/index')
-const { addressFromPrivateKey } = require('../utils/nervosutils')
+const fs = require('fs')
+const dir = require('node-dir')
+const path = require('path')
+const ResolverIntercept = require('./resolverintercept')
+const Require = require('truffle-require')
+const async = require('async')
+const AppChain = require('@appchain/base').default
+const expect = require('truffle-expect')
+const Deployer = require('truffle-deployer')
+const log = require('../utils/log').title('migrate/index')
+const { addressFromPrivateKey } = require('../utils/appchain')
 
 function Migration(file) {
   this.file = path.resolve(file)
@@ -17,49 +16,37 @@ function Migration(file) {
 }
 
 Migration.prototype.run = function(options, callback) {
-  var self = this
-  var logger = options.logger
+  const self = this
+  const logger = options.logger
 
-  var web3 = Web3()
-  web3.setProvider(options.provider)
+  const appchain = AppChain(options.provider)
+  appchain.setProvider(options.provider)
 
   logger.log('Running migration: ' + path.relative(options.migrations_directory, this.file))
 
-  var resolver = new ResolverIntercept(options.resolver)
+  const resolver = new ResolverIntercept(options.resolver)
 
   // Initial context.
-  var context = {
-    web3: web3,
+  const context = {
+    appchain: appchain,
   }
 
-  var deployer = new Deployer({
+  const deployer = new Deployer({
     logger: {
       log: function(msg) {
         logger.log('  ' + msg)
       },
     },
     network: options.network,
-    network_id: options.network_id,
+    network_id: options.networks[options.network].network_id,
     provider: options.provider,
     basePath: path.dirname(this.file),
   })
 
-  var finish = function(err) {
+  const finish = function(err) {
     if (err) return callback(err)
     deployer
       .start()
-      .then(function() {
-        if (options.save === false) return
-
-        var Migrations = resolver.require('./Migrations.sol')
-
-        if (Migrations && Migrations.isDeployed()) {
-          logger.log('Saving successful migration to network...')
-          return Migrations.deployed().then(function(migrations) {
-            return migrations.setCompleted(self.number)
-          })
-        }
-      })
       .then(function() {
         if (options.save === false) return
         logger.log('Saving artifacts...')
@@ -76,8 +63,8 @@ Migration.prototype.run = function(options, callback) {
   }
 
   const address = addressFromPrivateKey(options.privateKey)
-  log('address:', address)
   const accounts = [address]
+
   Require.file(
     {
       file: self.file,
@@ -203,10 +190,12 @@ var Migrate = {
 
     clone.provider = this.wrapProvider(options.provider, clone.logger)
     clone.resolver = this.wrapResolver(options.resolver, clone.provider)
-
+    // fix inner promise always pending in last migration
+    migrations.push(null)
     async.eachSeries(
       migrations,
       function(migration, finished) {
+        if (migration === null) return
         migration.run(clone, function(err) {
           if (err) return finished(err)
           finished()
