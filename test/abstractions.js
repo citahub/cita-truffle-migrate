@@ -20,7 +20,18 @@ describe('Abstractions', function() {
     this.timeout(20000)
 
     // Compile first
-    var result = solc.compile(fs.readFileSync('./test/lib/Example.sol', { encoding: 'utf8' }), 1)
+    var result = solc.compile(fs.readFileSync('./test/lib/Example.sol', { encoding: 'utf8' }), 
+    {
+      
+        version: "0.5.0", // A version or constraint - Ex. "^0.5.0"
+        settings: {
+          optimizer: {
+            enabled: true,
+            // runs: <number>   // Optimize for how many times you intend to run the code
+          }
+        }
+      
+    })
 
     // Clean up after solidity. Only remove solidity's listener,
     // which happens to be the first.
@@ -70,7 +81,7 @@ describe('Abstractions', function() {
       ...config.txParams,
     }
     let example
-    this.timeout(30000)
+    this.timeout(50000)
     Example.new(1, txParams)
       .then((instance) => {
         example = instance
@@ -85,19 +96,41 @@ describe('Abstractions', function() {
       })
       .then((validUntilBlock) => {
         txParams.validUntilBlock = validUntilBlock
+        console.log(txParams)
         return example.methods.setValue(5).send(txParams)
       })
       .then((res) => {
-        return web3.listeners.listenToTransactionReceipt(res.hash)
+        // console.log(res)
+        web3.listeners.listenToTransactionReceipt(res.hash).then(function(res){
+          // console.log(res)
+          setTimeout(()=>{
+            example.methods.value().call().then((value)=>{
+              // console.log(value)
+              assert.equal(value.valueOf(), 5, 'Ending value should be five')
+              done();
+            }).catch((e)=>{console.log(e);done()})
+          },5000)
+        }).catch(function(e){
+          // console.log(e)
+          done()
+        })
       })
-      .then((res) => {
-        return example.methods.value().call()
-      })
-      .then((value) => {
-        assert.equal(value.valueOf(), 5, 'Ending value should be five')
-      })
-      .then(done)
-      .catch(done)
+      // .then((res) => {
+      //   console.log(res)
+      //   setTimeout(()=>{
+      //     example.methods.value().call().then((value)=>{
+      //       assert.equal(value.valueOf(), 5, 'Ending value should be five')
+      //       done();
+      //     })
+      //   },3000)
+      //   // .then((value) => {
+      //   //   assert.equal(value.valueOf(), 5, 'Ending value should be five')
+      //   // })
+      //   // .then(done)
+      //   // .catch(done)
+      //   // return example.methods.value().call()
+      // })
+      
   })
 
   it("shouldn't synchronize constant functions", function(done) {
@@ -108,7 +141,7 @@ describe('Abstractions', function() {
     Example.new(5, txParams)
       .then((instance) => {
         example = instance
-        return example.methods.getValue().call()
+        return example.methods.value().call()
       })
       .then((value) => {
         assert.equal(value.valueOf(), 5, 'Value should have been retrieved with explicitly calling .call()')

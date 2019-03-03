@@ -1,4 +1,4 @@
-const AppChain = require('@appchain/base').default
+const AppChain = require('@cryptape/cita-sdk').default
 const log = require('../utils/log').title('contract/contract')
 const {
   currentValidUntilBlock,
@@ -382,14 +382,13 @@ const parsedDeployContractParams = function(contract, args) {
         args.length
     )
   }
-
   tx_params = Utils.merge(contract.class_defaults, tx_params)
 
   if (tx_params.data == null) {
     tx_params.data = contract.binary
   }
   tx_params.chainId = contract.network_id.split('appchain')[1]
-
+  tx_params.version = 1;
   return { tx_params, args }
 }
 

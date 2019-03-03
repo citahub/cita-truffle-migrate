@@ -1,5 +1,5 @@
 const utf8 = require('utf8')
-const AppChain = require('@appchain/base').default
+const AppChain = require('@cryptape/cita-sdk').default
 const log = require('./log').title('utils/appchain')
 
 const fromUtf8 = function(str) {
@@ -83,7 +83,7 @@ const storeAbi = (appchain, contractAddress, abi, txParams) => {
     validUntilBlock,
     chainId,
     privateKey,
-    value, 
+    value,
   }
   if (tx.validUntilBlock === undefined) {
     return currentValidUntilBlock(appchain)
@@ -108,7 +108,7 @@ const storeAbiCheck = (appchain, contractAddress, abi, txParams, success, failur
       if (err !== null) {
         throw err
       }
-      return appchain.base.getAbi(contractAddress)
+      return appchain.base.getAbi(contractAddress,"pending")  // CITA 0.20  new feature, get the latest block can not mark block as ‘latest’, but ‘pending
     })
     .then((abi) => {
       if (abi === '0x') {
@@ -152,7 +152,7 @@ const pollingReceipt = (appchain, hash) => {
 
 const fetchedChainId = (appchain) => {
   return appchain.base.getMetaData().then((res) => {
-    return res.chainId
+    return res.chainIdV1 || res.chainId
   })
 }
 

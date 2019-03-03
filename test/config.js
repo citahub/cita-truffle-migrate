@@ -1,4 +1,4 @@
-const AppChain = require('@appchain/base').default
+const AppChain = require('@cryptape/cita-sdk').default
 const Web3 = require('web3')
 const { addressFromPrivateKey } = require('../dist/utils/appchain')
 
@@ -15,7 +15,7 @@ const creater = () => {
     verboseRpc: verboseRpc,
   }
 
-  const txParams = { quota, privateKey }
+  const txParams = { quota, privateKey, version: 1 }
 
   const config = {
     privateKey,

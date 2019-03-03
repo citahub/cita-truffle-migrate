@@ -1,5 +1,5 @@
 const Provider = require('truffle-provider')
-const Web3 = require('@appchain/base').default
+const Web3 = require('@cryptape/cita-sdk').default
 const log = require('../dist/utils/log').title('test/util')
 const config = require('./config')
 const { addressFromPrivateKey } = require('../dist/utils/appchain')
