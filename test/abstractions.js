@@ -88,16 +88,20 @@ describe('Abstractions', function() {
         return example.methods.setValue(5).send(txParams)
       })
       .then((res) => {
-        web3.listeners.listenToTransactionReceipt(res.hash).then(function(res){
-          setTimeout(()=>{
-            example.methods.value().call().then((value)=>{
-              assert.equal(value.valueOf(), 5, 'Ending value should be five')
-              done();
-            }).catch(done)
-          },5000) // it seems weird that after  getting the transcationReceipt,  still need to wait for 1-2 block to get the latest contract info
-        }).catch(done)
+        return web3.listeners.listenToTransactionReceipt(res.hash)
       })
-
+      .then((res) => {
+        return new Promise((resolve)=>{
+          setTimeout(()=>{
+            resolve(example.methods.value().call())
+          },6000) // wait for 1-2 block
+        })
+      })
+      .then((value) => {
+        assert.equal(value.valueOf(), 5, 'Ending value should be five')
+      })
+      .then(done)
+      .catch(done)
   })
 
   it("shouldn't synchronize constant functions", function(done) {
