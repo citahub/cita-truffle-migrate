@@ -1,4 +1,4 @@
-const AppChain = require('@appchain/base').default
+const AppChain = require('@cryptape/cita-sdk').default
 const ethJSABI = require('ethjs-abi')
 const StatusError = require('./statuserror.js')
 const log = require('../utils/log').title('contract/utils')

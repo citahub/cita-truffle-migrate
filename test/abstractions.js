@@ -70,7 +70,7 @@ describe('Abstractions', function() {
       ...config.txParams,
     }
     let example
-    this.timeout(30000)
+    this.timeout(50000)
     Example.new(1, txParams)
       .then((instance) => {
         example = instance
@@ -91,7 +91,11 @@ describe('Abstractions', function() {
         return web3.listeners.listenToTransactionReceipt(res.hash)
       })
       .then((res) => {
-        return example.methods.value().call()
+        return new Promise((resolve)=>{
+          setTimeout(()=>{
+            resolve(example.methods.value().call())
+          },6000) // wait for 1-2 block
+        })
       })
       .then((value) => {
         assert.equal(value.valueOf(), 5, 'Ending value should be five')
@@ -108,7 +112,7 @@ describe('Abstractions', function() {
     Example.new(5, txParams)
       .then((instance) => {
         example = instance
-        return example.methods.getValue().call()
+        return example.methods.value().call()
       })
       .then((value) => {
         assert.equal(value.valueOf(), 5, 'Value should have been retrieved with explicitly calling .call()')

@@ -1,4 +1,4 @@
-const AppChain = require('@appchain/base').default
+const AppChain = require('@cryptape/cita-sdk').default
 const TruffleError = require('truffle-error')
 const expect = require('truffle-expect')
 const Resolver = require('../resolver')
