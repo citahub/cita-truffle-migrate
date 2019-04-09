@@ -53,17 +53,25 @@ const sendDeployContract = (contract, data, contractArguments, txParams) => {
 const deployContract = (appchain, contract, data, args, txParams) => {
   const { privateKey, from, nonce, quota, chainId, version, validUntilBlock, value } = txParams
   const tx = { privateKey, from, nonce, quota, chainId, version, validUntilBlock, value }
-  if (tx.validUntilBlock === undefined) {
-    return currentValidUntilBlock(appchain)
-      .then((number) => {
-        tx.validUntilBlock = number
-      })
-      .then(() => {
-        return sendDeployContract(contract, data, args, tx)
-      })
-  } else {
-    return sendDeployContract(contract, data, args, tx)
-  }
+  return appchain.base.getMetaData().then((meta)=>{
+    if(meta.chainIdV1){
+      tx.version = 1 
+    } else {
+      tx.verion = 0;
+    }
+    if (tx.validUntilBlock === undefined) {
+      return currentValidUntilBlock(appchain)
+        .then((number) => {
+          tx.validUntilBlock = number
+        })
+        .then(() => {
+          return sendDeployContract(contract, data, args, tx)
+        })
+    } else {
+      return sendDeployContract(contract, data, args, tx)
+    }
+  })
+  
 }
 
 const storeAbi = (appchain, contractAddress, abi, txParams) => {

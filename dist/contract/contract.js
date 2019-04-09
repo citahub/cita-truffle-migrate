@@ -83,14 +83,19 @@ const newContract = function(...args) {
       checkLibraries(self)
     })
     .then(function() {
-      return self.appchain.base.getMetaData().then((meta)=>{
-        if(meta.chainIdV1){
-          args[1].version = 1;
-        } else {
-          args[1].version = 0;
-        }
+      if(args && args[1] && args[1].version) {
+        return self.appchain.base.getMetaData().then((meta)=>{
+          if(meta.chainIdV1){
+            args[1].version = 1;
+          } else {
+            args[1].version = 0;
+          }
+          return deployedContract(self, args)
+        })
+      } else {
         return deployedContract(self, args)
-      })
+      }
+      
     })
 }
 
