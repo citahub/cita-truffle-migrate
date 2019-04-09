@@ -53,17 +53,21 @@ const sendDeployContract = (contract, data, contractArguments, txParams) => {
 const deployContract = (appchain, contract, data, args, txParams) => {
   const { privateKey, from, nonce, quota, chainId, version, validUntilBlock, value } = txParams
   const tx = { privateKey, from, nonce, quota, chainId, version, validUntilBlock, value }
-  if (tx.validUntilBlock === undefined) {
-    return currentValidUntilBlock(appchain)
-      .then((number) => {
-        tx.validUntilBlock = number
-      })
-      .then(() => {
-        return sendDeployContract(contract, data, args, tx)
-      })
-  } else {
-    return sendDeployContract(contract, data, args, tx)
-  }
+  return appchain.base.getMetaData().then((meta)=>{
+    tx.version = meta.version;
+    if (tx.validUntilBlock === undefined) {
+      return currentValidUntilBlock(appchain)
+        .then((number) => {
+          tx.validUntilBlock = number
+        })
+        .then(() => {
+          return sendDeployContract(contract, data, args, tx)
+        })
+    } else {
+      return sendDeployContract(contract, data, args, tx)
+    }
+  })
+  
 }
 
 const storeAbi = (appchain, contractAddress, abi, txParams) => {
@@ -108,7 +112,13 @@ const storeAbiCheck = (appchain, contractAddress, abi, txParams, success, failur
       if (err !== null) {
         throw err
       }
-      return appchain.base.getAbi(contractAddress,"pending")  // CITA 0.20  new feature, get the latest block can not mark block as ‘latest’, but ‘pending
+      return appchain.base.getMetaData().then((meta)=>{
+        let state = 'latest'
+        if(meta.version === 1){
+          state = 'pending'
+        }
+        return appchain.base.getAbi(contractAddress,state)  // CITA 0.20  new feature, get the latest block can not mark block as ‘latest’, but ‘pending
+      })
     })
     .then((abi) => {
       if (abi === '0x') {
