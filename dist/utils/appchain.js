@@ -54,11 +54,7 @@ const deployContract = (appchain, contract, data, args, txParams) => {
   const { privateKey, from, nonce, quota, chainId, version, validUntilBlock, value } = txParams
   const tx = { privateKey, from, nonce, quota, chainId, version, validUntilBlock, value }
   return appchain.base.getMetaData().then((meta)=>{
-    if(meta.chainIdV1){
-      tx.version = 1 
-    } else {
-      tx.verion = 0;
-    }
+    tx.version = meta.version;
     if (tx.validUntilBlock === undefined) {
       return currentValidUntilBlock(appchain)
         .then((number) => {
@@ -118,7 +114,7 @@ const storeAbiCheck = (appchain, contractAddress, abi, txParams, success, failur
       }
       return appchain.base.getMetaData().then((meta)=>{
         let state = 'latest'
-        if(meta.chainIdV1){
+        if(meta.version === 1){
           state = 'pending'
         }
         return appchain.base.getAbi(contractAddress,state)  // CITA 0.20  new feature, get the latest block can not mark block as ‘latest’, but ‘pending

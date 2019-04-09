@@ -45,11 +45,7 @@ const Contract = function (contract) {
   this.sendTransaction = (tx_params) => {
     var adjusted_tx_params = {...tx_params}
     return constructor.appchain.base.getMetaData().then((meta)=>{
-      if(meta.chainIdV1){
-        adjusted_tx_params.version = 1;
-      } else {
-        adjusted_tx_params.version = 0;
-      }
+      adjusted_tx_params = meta.version;
       return constructor.appchain.base.sendTransaction.apply(constructor.appchain.base, [adjusted_tx_params])
 
     })
@@ -85,11 +81,7 @@ const newContract = function(...args) {
     .then(function() {
       if(args && args[1] && args[1].version) {
         return self.appchain.base.getMetaData().then((meta)=>{
-          if(meta.chainIdV1){
-            args[1].version = 1;
-          } else {
-            args[1].version = 0;
-          }
+          args[1].version = meta.version;
           return deployedContract(self, args)
         })
       } else {
