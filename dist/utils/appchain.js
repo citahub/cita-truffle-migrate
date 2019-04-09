@@ -108,7 +108,13 @@ const storeAbiCheck = (appchain, contractAddress, abi, txParams, success, failur
       if (err !== null) {
         throw err
       }
-      return appchain.base.getAbi(contractAddress,"pending")  // CITA 0.20  new feature, get the latest block can not mark block as ‘latest’, but ‘pending
+      return appchain.base.getMetaData().then((meta)=>{
+        let state = 'latest'
+        if(meta.chainIdV1){
+          state = 'pending'
+        }
+        return appchain.base.getAbi(contractAddress,state)  // CITA 0.20  new feature, get the latest block can not mark block as ‘latest’, but ‘pending
+      })
     })
     .then((abi) => {
       if (abi === '0x') {

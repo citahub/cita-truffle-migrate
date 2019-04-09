@@ -43,7 +43,16 @@ const Contract = function (contract) {
   this.transactionHash = contract.transactionHash
 
   this.sendTransaction = (tx_params) => {
-    return constructor.appchain.base.sendTransaction.apply(constructor.appchain.base, [tx_params])
+    var adjusted_tx_params = {...tx_params}
+    return constructor.appchain.base.getMetaData().then((meta)=>{
+      if(meta.chainIdV1){
+        adjusted_tx_params.version = 1;
+      } else {
+        adjusted_tx_params.version = 0;
+      }
+      return constructor.appchain.base.sendTransaction.apply(constructor.appchain.base, [adjusted_tx_params])
+
+    })
   }
 
   this.send = (value) => {
@@ -74,7 +83,14 @@ const newContract = function(...args) {
       checkLibraries(self)
     })
     .then(function() {
-      return deployedContract(self, args)
+      return self.appchain.base.getMetaData().then((meta)=>{
+        if(meta.chainIdV1){
+          args[1].version = 1;
+        } else {
+          args[1].version = 0;
+        }
+        return deployedContract(self, args)
+      })
     })
 }
 
@@ -388,7 +404,7 @@ const parsedDeployContractParams = function(contract, args) {
     tx_params.data = contract.binary
   }
   tx_params.chainId = contract.network_id.split('appchain')[1]
-  tx_params.version = 1;
+  // tx_params.version = 1;
   return { tx_params, args }
 }
 
