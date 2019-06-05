@@ -15,7 +15,7 @@ const creater = () => {
     verboseRpc: verboseRpc,
   }
 
-  const txParams = { quota, privateKey, version: 1 }
+  const txParams = { quota, privateKey, version: 2 }
 
   const config = {
     privateKey,

@@ -17,7 +17,7 @@ function Config(truffle_directory, working_directory, network) {
     from: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     nonce: 99,
     quota: 9999999,
-    version: 1,
+    version: 2,
     validUntilBlock: undefined,
     value: '0x0',
   }

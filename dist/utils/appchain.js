@@ -114,7 +114,7 @@ const storeAbiCheck = (appchain, contractAddress, abi, txParams, success, failur
       }
       return appchain.base.getMetaData().then((meta)=>{
         let state = 'latest'
-        if(meta.version === 1){
+        if(meta.version >= 1){
           state = 'pending'
         }
         return appchain.base.getAbi(contractAddress,state)  // CITA 0.20  new feature, get the latest block can not mark block as ‘latest’, but ‘pending
